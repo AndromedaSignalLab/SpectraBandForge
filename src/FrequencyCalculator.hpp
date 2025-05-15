@@ -23,16 +23,21 @@ public:
     template <class T> static inline T calculateLowerEdgeBandFrequency(size_t b, T G, T fm);
     template <class T> static inline T calculateUpperEdgeBandFrequency(size_t b, T G, T fm);
     template<class T> static inline T getG(OctaveBandBase base = OctaveBandBase::Base10);
-    static inline interval<int> getXInterval(size_t b);
+    static inline interval<int> calculateXInterval(size_t b);
 };
 
-inline interval<int> FrequencyCalculator::getXInterval(size_t b) {
-    if(b == 1)
-        return interval<int>(-5, 4);
-    if(b == 3)
-        return interval<int>(-16, 13);
+inline interval<int> FrequencyCalculator::calculateXInterval(size_t b) {
+    int lower = 0, upper = 0;
+    double currentExactMidBandFrequency;
+    double G = getG<double>();
 
-    int lower, upper;
+    for(int x = -500; x < 500; x++) {
+        currentExactMidBandFrequency = calculateExactMidBandFrequency<double>(b, G, fRef, x);
+        if(lower == 0 && currentExactMidBandFrequency >= 20)
+            lower = x;
+        if(currentExactMidBandFrequency <= 20000 && upper < currentExactMidBandFrequency)
+            upper = x;
+    }
 
     return interval<int>(lower, upper);
 }

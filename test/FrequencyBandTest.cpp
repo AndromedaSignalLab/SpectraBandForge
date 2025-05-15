@@ -49,23 +49,44 @@ void printSpectrumAnalyzerBands(size_t nthOctave){
     //std::cout<<sp.getData()[0].sampleAmount;
 }
 
-int main() {
-    //BandFilter<double>::
-    //printOctaveBands(1);
-    //inline T FrequencyCalculator::calculateExactMidBandFrequency(size_t b, T G, T fr, size_t x) {
+void printXInterval(size_t b, interval<int> xInterval) {
+    std::cout<< "Bandwidth Designator: "<< b
+             <<", Lower x: " << xInterval.lower()
+             <<  ", Upper x: " << xInterval.upper()
+             << ", Band amount: " << xInterval.upper() - xInterval.lower() + 1
+             << std::endl;
 
-    int bandIndex = -5;
-    size_t b = 1;
+}
 
-    std::cout<< "Bandwidth Designator: " << b << " Lower: " << FrequencyCalculator::getXInterval(b).lower() <<  " Upper: " << FrequencyCalculator::getXInterval(b).upper()<< std::endl;
-
+void printEdgeFrequencies(size_t b, int x) {
     double G = FrequencyCalculator::getG<double>();
-    double exactFm = FrequencyCalculator::calculateExactMidBandFrequency<double>(b, G, fRef, bandIndex);
+    double exactFm = FrequencyCalculator::calculateExactMidBandFrequency<double>(b, G, fRef, x);
     double lowerEdge = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, exactFm);
     double upperEdge = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, exactFm);
-    std::cout << "Exact Fm = " << exactFm << std::endl;
-    std::cout << "Lower Edge = " << lowerEdge << std::endl;
-    std::cout << "Upper Edge = " << upperEdge << std::endl;
+    std::cout << "X = " << x;
+    std::cout << ", Exact Fm = " << exactFm;
+    std::cout << ", Lower Edge = " << lowerEdge;
+    std::cout << ", Upper Edge = " << upperEdge;
+    std::cout << std::endl;
+}
+
+void testXIntervals(size_t b) {
+    interval<int> xInterval = FrequencyCalculator::calculateXInterval(b);
+
+    printXInterval(b, xInterval);
+
+    std::cout << "---- Lower Edge ----" << std::endl;
+    printEdgeFrequencies(b, xInterval.lower());
+
+    std::cout << "---- Upper Edge ----" << std::endl;
+    printEdgeFrequencies(b, xInterval.upper());
+}
+
+int main() {
+    testXIntervals(1);
+    testXIntervals(2);
+    testXIntervals(3);
+    testXIntervals(24);
 
     return 0;
 }
