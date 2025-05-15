@@ -11,6 +11,9 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 #include <iostream>
 #include "../src/BandFilter.hpp"
+#include "FrequencyCalculator.hpp"
+#include "BandDefinitions.hpp"
+#include <ranges>
 
 //31 Band:
 //20    31.5   50   80    125   200   315   500   800   1.25k   2k   3.15k   5k   8k    12.5k   20k
@@ -33,9 +36,9 @@ void printOctaveBands(size_t nthOctave){
     }
 
 }
-void printSpectrumAnalyzerBands(){
+void printSpectrumAnalyzerBands(size_t nthOctave){
     std::vector<OctaveBand<double>> octaveBands;
-    octaveBands = BandFilter<double>::calculateOctaveBands(OctaveBandBase::Base10, 2);
+    octaveBands = BandFilter<double>::calculateOctaveBands(OctaveBandBase::Base10, nthOctave);
     std::cout<<octaveBands.size()<<" frequencies"<<std::endl;
 
     SpectrumAnalyzerBands<double> spectrumAnalyzerBands(octaveBands);
@@ -47,7 +50,22 @@ void printSpectrumAnalyzerBands(){
 }
 
 int main() {
-    printOctaveBands(3);
-    //testRGB();
+    //BandFilter<double>::
+    //printOctaveBands(1);
+    //inline T FrequencyCalculator::calculateExactMidBandFrequency(size_t b, T G, T fr, size_t x) {
+
+    int bandIndex = -5;
+    size_t b = 1;
+
+    std::cout<< "Bandwidth Designator: " << b << " Lower: " << FrequencyCalculator::getXInterval(b).lower() <<  " Upper: " << FrequencyCalculator::getXInterval(b).upper()<< std::endl;
+
+    double G = FrequencyCalculator::getG<double>();
+    double exactFm = FrequencyCalculator::calculateExactMidBandFrequency<double>(b, G, fRef, bandIndex);
+    double lowerEdge = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, exactFm);
+    double upperEdge = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, exactFm);
+    std::cout << "Exact Fm = " << exactFm << std::endl;
+    std::cout << "Lower Edge = " << lowerEdge << std::endl;
+    std::cout << "Upper Edge = " << upperEdge << std::endl;
+
     return 0;
 }

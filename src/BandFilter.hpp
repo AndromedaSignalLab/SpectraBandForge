@@ -1,5 +1,5 @@
 /*
-BandFilter class declarations and definitions of DSP Project
+BandFilter class declarations and definitions of SpectraBandForge Project
 Copyright (C) 2020 Volkan Orhan
 
 This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.
@@ -13,8 +13,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include <cmath>
 #include <vector>
 #include "SearchUtil.hpp"
-#include "MathUtil.hpp"
-#include "DSP.hpp"
+#include "BandDefinitions.hpp"
+#include "FrequencyCalculator.hpp"
 
 #define REAL 0
 #define IMAG 1
@@ -57,21 +57,6 @@ template<class T> inline T NominalFrequencies<T>::calculateNominalFrequency(T fr
     */
 }
 
-enum OctaveBandBase{
-    Base2 = 2,
-    Base10 = 10
-};
-
-template <class T>
-struct OctaveBand {
-    size_t bandNumber;
-    OctaveBandBase base;
-    T midBandFrequency;
-    T nominalMidBandFrequency;
-    T upperEdgeBandFrequency;
-    T lowerEdgeBandFrequency;
-};
-
 template <class T>
 class SpectrumAnalyzerBandDTO {
 public:
@@ -113,13 +98,10 @@ public:
     std::vector<SpectrumAnalyzerBandDTO<T>>
     calculateSpectrumAnalyzerBands(const std::vector<OctaveBand<T>> &octaveBands, FFTDataType *fftData, size_t frameAmount, size_t sampleRate);
     */
-private:
-    static inline T calculateMidBandFrequency(size_t b, T G, T fr, size_t bandNumber);
-    static inline T calculateLowerEdgeBandFrequency(size_t b, T G, T fm);
-    static inline T calculateUpperEdgeBandFrequency(size_t b, T G, T fm);
 };
 
-template <typename T> T BandFilter<T>::calculateMidBandFrequency(size_t b, T G, T fr, size_t bandNumber){
+/*
+template <typename T> T BandFilter<T>::calculateExactMidBandFrequency(size_t b, T G, T fr, size_t bandNumber){
     T fm;
     if(b%2 == 1) {
         fm = pow(G, (bandNumber-T(30))/b)*fr;
@@ -129,14 +111,7 @@ template <typename T> T BandFilter<T>::calculateMidBandFrequency(size_t b, T G, 
     }
     return fm;
 }
-
-template <class T> inline T BandFilter<T>::calculateLowerEdgeBandFrequency(size_t b, T G, T fm){
-    return pow(G, T(-1) / (T(2) * T(b))) * fm;
-}
-
-template <class T> inline T BandFilter<T>::calculateUpperEdgeBandFrequency(size_t b, T G, T fm){
-    return pow(G, T(1) / (T(2) * T(b))) * fm;
-}
+*/
 
 // Inline Method Definitions
 /*
@@ -157,13 +132,13 @@ template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOcta
 
     while(true) {
         OctaveBand<T> octaveBand;
-        fm = calculateMidBandFrequency(b, G, fr, i);
-        fm10 = (base == OctaveBandBase::Base10) ? fm : calculateMidBandFrequency(b, G10, fr, i);
+        fm = FrequencyCalculator::calculateExactMidBandFrequency(b, G, fr, i);
+        fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, i);
         octaveBand.bandNumber = currentBandIndex;
         octaveBand.base = base;
         octaveBand.midBandFrequency = fm;
-        octaveBand.lowerEdgeBandFrequency = calculateLowerEdgeBandFrequency(b, G, fm);
-        octaveBand.upperEdgeBandFrequency = calculateUpperEdgeBandFrequency(b, G, fm);
+        octaveBand.lowerEdgeBandFrequency = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, fm);
+        octaveBand.upperEdgeBandFrequency = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, fm);
         if(octaveBand.upperEdgeBandFrequency < minFreq) {
             i += T(1);
             continue;

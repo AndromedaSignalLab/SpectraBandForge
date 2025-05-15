@@ -12,7 +12,20 @@ project("SpectraBandForge Test")
 
 set(CMAKE_CXX_STANDARD 20)
 
+#Boost Definitions
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+
+find_package(Boost REQUIRED)
+
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
 include_directories(../../AndromedaDSP/src)
+include_directories(${Boost_INCLUDE_DIRS})
+
 include_directories(../src)
 
 file(GLOB SpectraBandForgeTest
@@ -31,12 +44,9 @@ file(GLOB AndromedaDSPSrc
 )
 
 
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-endif()
-
 add_executable(SpectraBandForgeTest
     ${SpectraBandForgeTest}
     ${SpectraBandForgeSrc}
     ${AndromedaDSPSrc}
+    ${Boost_LIBRARIES}
 )
