@@ -132,7 +132,7 @@ BandFilter<T>::calculateSpectrumAnalyzerBands(const std::vector<OctaveBand<T>> &
 }*/
 
 template <typename T>
-class SpectrumAnalyzerBands{
+class SpectrumAnalyzerBands {
     public:
         SpectrumAnalyzerBands();
         SpectrumAnalyzerBands(const std::vector<OctaveBand<T>> &octaveBands);

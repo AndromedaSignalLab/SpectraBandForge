@@ -88,7 +88,7 @@ void testXIntervals(size_t b) {
 }
 
 void testRoundBy() {
-    std::cout << std::endl <<SpectraBandForge::MathUtil::roundBy(156.256, 5) << std::endl;
+    std::cout << std::endl <<AndromedaDSP::MathUtil::roundBy(156.256, 5) << std::endl;
 }
 
 void testNominalFrequency(size_t b) {
