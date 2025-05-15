@@ -94,9 +94,6 @@ template<class T> inline T FrequencyCalculator::getG(OctaveBandBase base) {
 }
 
 template<class T> inline T FrequencyCalculator::getNominalFrequency(T fm){
-    const T nominalFrequencies[] = {1, 1.25, 1.63, 2, 2.5, 3.15, 4, 5, 6.3, 8, 10, 12.5, 16.3, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315,
-                                    400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
-                                    4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
-    int size = sizeof(nominalFrequencies)/sizeof(nominalFrequencies[0]);
-    return SearchUtil<T>::findClosest(nominalFrequencies, size, fm);
+    int size = sizeof(NominalFrequencies)/sizeof(NominalFrequencies[0]);
+    return SearchUtil<T>::findClosest(NominalFrequencies, size, fm);
 }

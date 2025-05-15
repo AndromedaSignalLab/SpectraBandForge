@@ -12,7 +12,6 @@ You should have received a copy of the GNU Lesser General Public License along w
 #pragma once
 #include <cmath>
 #include <vector>
-#include "SearchUtil.hpp"
 #include "BandDefinitions.hpp"
 #include "FrequencyCalculator.hpp"
 
