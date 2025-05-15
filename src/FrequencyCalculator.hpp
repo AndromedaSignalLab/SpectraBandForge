@@ -13,6 +13,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include <cstddef>
 #include <cmath>
 #include "BandDefinitions.hpp"
+#include "MathUtil.hpp"
+#include "SearchUtil.hpp"
 #include <boost/numeric/interval.hpp>
 
 using namespace boost::numeric;
@@ -20,10 +22,14 @@ using namespace boost::numeric;
 class FrequencyCalculator {
 public:
     template <class T> static inline T calculateExactMidBandFrequency(size_t b, T G, T fr, int x);
+    template <class T> static inline T calculateNominalFrequency(size_t b, T frequency);
     template <class T> static inline T calculateLowerEdgeBandFrequency(size_t b, T G, T fm);
     template <class T> static inline T calculateUpperEdgeBandFrequency(size_t b, T G, T fm);
     template<class T> static inline T getG(OctaveBandBase base = OctaveBandBase::Base10);
     static inline interval<int> calculateXInterval(size_t b);
+private:
+    //Gets nominal frequency for b = 1 and 3
+    template<class T> static inline T getNominalFrequency(T frequency);
 };
 
 inline interval<int> FrequencyCalculator::calculateXInterval(size_t b) {
@@ -57,6 +63,21 @@ inline T FrequencyCalculator::calculateExactMidBandFrequency(size_t b, T G, T fr
     return fm;
 }
 
+template<class T> inline T FrequencyCalculator::calculateNominalFrequency(size_t b, T fm) {
+    if(b == 1 || b == 3)
+        return getNominalFrequency(fm);
+    else if(b == 2) {
+        return SpectraBandForge::MathUtil::roundBy(fm, 3);
+    }
+    int firstDigit = SpectraBandForge::MathUtil::firstDigit(fm);
+    if(firstDigit == 0)
+        return SpectraBandForge::MathUtil::roundBy(fm, 0);
+    if(firstDigit<5){
+        return SpectraBandForge::MathUtil::roundBy(fm, 3);
+    } else
+        return SpectraBandForge::MathUtil::roundBy(fm, 2);
+}
+
 template <class T> inline T FrequencyCalculator::calculateLowerEdgeBandFrequency(size_t b, T G, T fm){
     return pow(G, T(-1) / (T(2) * T(2*b))) * fm;
 }
@@ -70,4 +91,12 @@ template<class T> inline T FrequencyCalculator::getG(OctaveBandBase base) {
     const double G10 = pow(T(10), T(3)/T(10));
     T G = (base == OctaveBandBase::Base10) ? G10 : G2;
     return G;
+}
+
+template<class T> inline T FrequencyCalculator::getNominalFrequency(T fm){
+    const T nominalFrequencies[] = {1, 1.25, 1.63, 2, 2.5, 3.15, 4, 5, 6.3, 8, 10, 12.5, 16.3, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315,
+                                    400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
+                                    4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
+    int size = sizeof(nominalFrequencies)/sizeof(nominalFrequencies[0]);
+    return SearchUtil<T>::findClosest(nominalFrequencies, size, fm);
 }

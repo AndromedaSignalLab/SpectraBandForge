@@ -14,6 +14,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include "FrequencyCalculator.hpp"
 #include "BandDefinitions.hpp"
 #include <ranges>
+#include "DSP.hpp"
 
 //31 Band:
 //20    31.5   50   80    125   200   315   500   800   1.25k   2k   3.15k   5k   8k    12.5k   20k
@@ -50,20 +51,24 @@ void printSpectrumAnalyzerBands(size_t nthOctave){
 }
 
 void printXInterval(size_t b, interval<int> xInterval) {
-    std::cout<< "Bandwidth Designator: "<< b
+    std::cout<< "["
+             << "Bandwidth Designator: "<< b
              <<", Lower x: " << xInterval.lower()
              <<  ", Upper x: " << xInterval.upper()
              << ", Band amount: " << xInterval.upper() - xInterval.lower() + 1
+             << "]"
              << std::endl;
-
 }
 
 void printEdgeFrequencies(size_t b, int x) {
     double G = FrequencyCalculator::getG<double>();
+    //Fm : Frequency of mid-band
     double exactFm = FrequencyCalculator::calculateExactMidBandFrequency<double>(b, G, fRef, x);
+    double nominalFm = FrequencyCalculator::calculateNominalFrequency<double>(b, exactFm);
     double lowerEdge = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, exactFm);
     double upperEdge = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, exactFm);
     std::cout << "X = " << x;
+    std::cout << ", Nominal Fm = " << nominalFm;
     std::cout << ", Exact Fm = " << exactFm;
     std::cout << ", Lower Edge = " << lowerEdge;
     std::cout << ", Upper Edge = " << upperEdge;
@@ -80,6 +85,14 @@ void testXIntervals(size_t b) {
 
     std::cout << "---- Upper Edge ----" << std::endl;
     printEdgeFrequencies(b, xInterval.upper());
+}
+
+void testRoundBy() {
+    std::cout << std::endl <<SpectraBandForge::MathUtil::roundBy(156.256, 5) << std::endl;
+}
+
+void testNominalFrequency(size_t b) {
+    std::cout<< FrequencyCalculator::calculateNominalFrequency(b, 41.567)<<std::endl;
 }
 
 int main() {
