@@ -14,7 +14,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include "FrequencyCalculator.hpp"
 #include "BandDefinitions.hpp"
 #include <ranges>
-#include "DSP.hpp"
+#include "AndromedaDSP.hpp"
 
 //31 Band:
 //20    31.5   50   80    125   200   315   500   800   1.25k   2k   3.15k   5k   8k    12.5k   20k
