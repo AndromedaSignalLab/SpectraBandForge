@@ -95,7 +95,7 @@ template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOcta
         OctaveBand<T> octaveBand;
         fm = FrequencyCalculator::calculateExactMidBandFrequency(b, G, fr, i);
         fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, i);
-        octaveBand.bandNumber = currentBandIndex;
+        octaveBand.indexX = currentBandIndex;
         octaveBand.base = base;
         octaveBand.midBandFrequency = fm;
         octaveBand.lowerEdgeBandFrequency = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, fm);
@@ -135,7 +135,10 @@ class SpectrumAnalyzerBands {
     public:
         SpectrumAnalyzerBands();
         SpectrumAnalyzerBands(const std::vector<OctaveBand<T>> &octaveBands);
-        SpectrumAnalyzerBandDTO<T> & operator [](const T frequency);
+        void setBandWidthDesignator(size_t bandwidthDesignator);
+        void setLowerIndexX(int indexX);
+        void setHigherIndexX(int indexX);
+        SpectrumAnalyzerBandDTO<T> & operator [](const int indexX);
         void resetMagnitudes();
         std::vector<SpectrumAnalyzerBandDTO<T>> getData();
         void getData(SpectrumAnalyzerBandDTO<T> * bandData);
@@ -145,27 +148,19 @@ class SpectrumAnalyzerBands {
     private:
         void init();
         std::vector<SpectrumAnalyzerBandDTO<T>> spectrumAnalyzerBands;
-        SpectrumAnalyzerBandDTO<T> outsideBand;
 };
 
 template<typename T>
-SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::operator[](const T frequency) {
+SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::operator[](const int indexX) {
     for(SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
-        if(frequency >= spectrumAnalyzerBand.bandInfo.lowerEdgeBandFrequency && frequency < spectrumAnalyzerBand.bandInfo.upperEdgeBandFrequency)
+        if(spectrumAnalyzerBand.bandInfo.indexX == indexX)
             return spectrumAnalyzerBand;
     }
-    SpectrumAnalyzerBandDTO<T> & lastBand = spectrumAnalyzerBands[spectrumAnalyzerBands.size()-1];
-    if(frequency == lastBand.bandInfo.upperEdgeBandFrequency)
-        return lastBand;
-    return outsideBand;
+    throw std::exception();
 }
 
 template<typename T>
 void SpectrumAnalyzerBands<T>::init() {
-    outsideBand.bandInfo.midBandFrequency = -1;
-    outsideBand.bandInfo.nominalMidBandFrequency = -1;
-    outsideBand.bandInfo.upperEdgeBandFrequency = -1;
-    outsideBand.bandInfo.lowerEdgeBandFrequency = -1;
 }
 
 template<typename T>

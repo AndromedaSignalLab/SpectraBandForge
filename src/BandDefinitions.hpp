@@ -21,24 +21,22 @@ struct NominalFrequency {
     T exactMidBandFrequency;
 };
 
-enum OctaveBandBase {
+enum class OctaveBandBase {
     Base2 = 2,
     Base10 = 10
 };
 
 template <class T>
 struct OctaveBand {
-    size_t bandNumber;
-    OctaveBandBase base;
+    int indexX;
+    OctaveBandBase base = OctaveBandBase::Base10;
     T midBandFrequency;
     T nominalMidBandFrequency;
-    T upperEdgeBandFrequency;
     T lowerEdgeBandFrequency;
+    T upperEdgeBandFrequency;
 };
 
-//https://www.nti-audio.com/Portals/0/data/en/1-n-Octave-band-filter-data.pdf
-
-static const NominalFrequency<double> nominalFrequenciesOfThirdOctaveBands[] = {
+static const NominalFrequency<double> NominalFrequenciesOfThirdOctaveBands[] = {
     //Calculated values
     {-31, 0.8, 0.794},
     {-30, 1, 1},
@@ -88,7 +86,7 @@ static const NominalFrequency<double> nominalFrequenciesOfThirdOctaveBands[] = {
     {13, 20000, 19953}
 };
 
-static const NominalFrequency<double> nominalFrequenciesOfFirstOctaveBands[] = {
+static const NominalFrequency<double> NominalFrequenciesOfFirstOctaveBands[] = {
     //Calculated values
     {-10, 1, 1},
     {-9, 2, 1.995},
@@ -108,6 +106,9 @@ static const NominalFrequency<double> nominalFrequenciesOfFirstOctaveBands[] = {
     {4, 16000, 15849}
 };
 
+/**
+ * \brief Nominal frequencies Nominal frequencies 1st and 3rd octave bands
+ */
 const double NominalFrequencies[] = {
     0.8, 1, 1.25, 1.6, 2, 2.5, 3.15, 4, 5, 6.3, 8, 10,
     12.5, 16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,

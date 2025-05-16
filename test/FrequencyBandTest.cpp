@@ -33,7 +33,7 @@ void printOctaveBands(size_t nthOctave){
     std::cout<<octaveBands.size()<<" frequencies"<<std::endl;
 
     for(OctaveBand<double> &o:octaveBands) {
-        std::cout <<"Band Number: "<<o.bandNumber<<" Nominal Freq: "<< o.nominalMidBandFrequency <<" Exact Freq: "<<o.midBandFrequency<< " Upper Freq: " << o.upperEdgeBandFrequency << " Lower Freq:" << o.lowerEdgeBandFrequency << std::endl;
+        std::cout <<"Index X: "<<o.indexX<<" Nominal Freq: "<< o.nominalMidBandFrequency <<" Exact Freq: "<<o.midBandFrequency<< " Upper Freq: " << o.upperEdgeBandFrequency << " Lower Freq:" << o.lowerEdgeBandFrequency << std::endl;
     }
 
 }
