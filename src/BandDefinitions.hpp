@@ -21,6 +21,22 @@ struct NominalFrequency {
     T exactMidBandFrequency;
 };
 
+enum class StandardType {
+    ANSI,
+    IEC
+};
+
+enum class BandDesignator : size_t {
+    OneOctave = 1, // 1 octave
+    OneHalfOctave = 2, // 1/2 octave
+    OneThirdOctave = 3, // 1/3 octave
+    OneFourthOctave = 4, // 1/4 octave
+    OneSixthOctave = 6, // 1/6 octave
+    OneEighthOctave = 8, // 1/8 octave
+    OneTwelfthOctave = 12, // 1/12 octave
+    OneTwentyFourthOctave = 24 // 1/24 octave
+};
+
 enum class OctaveBandBase {
     Base2 = 2,
     Base10 = 10

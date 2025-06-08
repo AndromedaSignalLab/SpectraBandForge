@@ -124,8 +124,10 @@ template<class T> inline void BandFilter<T>::getIndexBoundaries(const size_t b, 
 /*
  * "ANSI S1.11: Specification for Octave, Half-Octave, and Third Octave Band Filter Sets" (PDF). Retrieved 7 March 2018.
  *
- * \param b is bandwidth designator. It is equivalent to n of the nth octave. For example, b is 3 for 3rd octave bands.
- */
+ * \param b Bandwidth designator.
+ * Corresponds to "n" in the 1/n octave band structure.
+ * For example, b is 3 for 1/3 octave bands.
+*/
 template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOctaveBandsByXIndices(OctaveBandBase base, size_t b, int xBeginning, int xEnding) {
     const T fr = T(1000); //reference frequency
     const T G2 = T(2);
