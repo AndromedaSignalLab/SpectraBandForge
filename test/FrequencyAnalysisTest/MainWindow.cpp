@@ -10,6 +10,10 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 #include "MainWindow.hpp"
+#include "BandFilter.hpp"
+
+#include <iostream>
+
 #include "./ui_MainWindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -18,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->listWidget->setCurrentRow(0);
+    initAnalysisModeComboBox();
+    updateAnalysisMode();
 }
 
 MainWindow::~MainWindow()
@@ -89,38 +95,33 @@ void MainWindow::on_frequencySlider_valueChanged(int value) {
 }
 
 void MainWindow::on_analysisModeComboBox_currentIndexChanged(int index) {
-    int bandDesignator = 0;
-    int bandAmount = 0;
-    switch(index) {
-    case 0:
-        bandDesignator = 1;
-        break;
-    case 1:
-        bandDesignator = 2;
-        break;
-    case 2:
-        bandDesignator = 3;
-        break;
-    case 3:
-        bandDesignator = 4;
-        break;
-    case 4:
-        bandDesignator = 6;
-        break;
-    case 5:
-        bandDesignator = 8;
-        break;
-    case 6:
-        bandDesignator = 12;
-        break;
-    case 7:
-        bandDesignator = 24;
-        break;
-    default:
-        bandDesignator = 1;
-        break;
+    updateAnalysisMode();
+}
+
+void MainWindow::initAnalysisModeComboBox() {
+    //Let item data hold band designator value
+
+    for (int i = 0; i < bandDesignators.size(); i++) {
+        ui->analysisModeComboBox->setItemData(i, bandDesignators[i]);
     }
+}
+
+void MainWindow::updateAnalysisMode() {
+    ui->octaveBandsTable->model()->removeRows(0, ui->octaveBandsTable->rowCount());
+    bandDesignator = ui->analysisModeComboBox->currentData().toInt();
     bandAmount = bandDesignator * 10;
     ui->bandDesignatorLabel->setText(QString::number(bandDesignator));
     ui->bandAmountLabel->setText(QString::number(bandAmount));
+    ui->octaveBandsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    std::vector<OctaveBand<double>> octaveBands = BandFilter<double>::calculateOctaveBands(bandDesignator);
+    int currentRowCount = 0;
+    for (OctaveBand<double> &octaveBand : octaveBands) {
+        ui->octaveBandsTable->insertRow(currentRowCount++);
+        ui->octaveBandsTable->setItem(currentRowCount-1, 0, new QTableWidgetItem(QString::number(octaveBand.indexX)));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 1, new QTableWidgetItem(QString::number(octaveBand.nominalMidBandFrequency)));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 2, new QTableWidgetItem(QString::number(octaveBand.midBandFrequency)));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 3, new QTableWidgetItem(QString::number(octaveBand.lowerEdgeBandFrequency)));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 4, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency)));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 5, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency - octaveBand.lowerEdgeBandFrequency)));
+    }
 }

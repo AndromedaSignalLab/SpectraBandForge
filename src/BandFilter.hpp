@@ -53,12 +53,16 @@ template <class T>
 class BandFilter
 {
 public:
-    static inline std::vector<OctaveBand<T>> calculateOctaveBands(OctaveBandBase base, size_t nthOctave, T minFreq = 20, T maxFreq = 20000);
+    static inline std::vector<OctaveBand<T>> calculateOctaveBands(size_t b);
+    static inline std::vector<OctaveBand<T>> calculateOctaveBandsByFrequencyInterval(OctaveBandBase base, size_t nthOctave, T minFreq = 20, T maxFreq = 20000);
+    static inline std::vector<OctaveBand<T>> calculateOctaveBandsByXIndices(OctaveBandBase base, size_t b, int xBeginning, int xEnding);
     /*
     template<class FFTDataType> static inline
     std::vector<SpectrumAnalyzerBandDTO<T>>
     calculateSpectrumAnalyzerBands(const std::vector<OctaveBand<T>> &octaveBands, FFTDataType *fftData, size_t frameAmount, size_t sampleRate);
     */
+private:
+    static inline void getIndexBoundaries(const size_t nthOctave, int &lowerIndex, int &upperIndex, bool &isValid);
 };
 
 /*
@@ -74,45 +78,132 @@ template <typename T> T BandFilter<T>::calculateExactMidBandFrequency(size_t b, 
 }
 */
 
+template<class T> inline void BandFilter<T>::getIndexBoundaries(const size_t b, int &lowerIndex, int &upperIndex, bool &isValid) {
+    if (!(b == 1 || b == 2 || b == 3 || b == 4 || b == 6 || b == 8 || b == 12 || b == 24)) {
+        isValid = false;
+        return;
+    }
+    isValid = true;
+    switch (b) {
+        case 1:
+        lowerIndex = -5;
+        upperIndex = 5;
+        break;
+    case 2:
+        lowerIndex = -11;
+        upperIndex = 9;
+        break;
+    case 3:
+        lowerIndex = -16;
+        upperIndex = 14;
+        break;
+    case 4:
+        lowerIndex = -23;
+        upperIndex = 17;
+        break;
+    case 6:
+        lowerIndex = -34;
+        upperIndex = 26;
+        break;
+    case 8:
+        lowerIndex = -45;
+        upperIndex = 35;
+        break;
+    case 12:
+        lowerIndex = -68;
+        upperIndex = 52;
+        break;
+    case 24:
+        lowerIndex = -136;
+        upperIndex = 104;
+        break;
+    }
+}
+
 // Inline Method Definitions
 /*
  * "ANSI S1.11: Specification for Octave, Half-Octave, and Third Octave Band Filter Sets" (PDF). Retrieved 7 March 2018.
+ *
+ * \param b is bandwidth designator. It is equivalent to n of the nth octave. For example, b is 3 for 3rd octave bands.
  */
-template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOctaveBands(OctaveBandBase base, size_t nthOctave, T minFreq, T maxFreq) {
+template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOctaveBandsByXIndices(OctaveBandBase base, size_t b, int xBeginning, int xEnding) {
     const T fr = T(1000); //reference frequency
     const T G2 = T(2);
     const double G10 = pow(T(10), T(3)/T(10));
 
     T fm; //exact midband frequency
     T fm10;
-    size_t b = nthOctave; //bandwidth designator
     std::vector<OctaveBand<T>> octaveBands;
-    T i = 0;
-    T currentBandIndex = 0;
+    T G = (base == OctaveBandBase::Base10) ? G10 : G2;
+
+    for(int x = xBeginning; x < xEnding; x++) {
+        OctaveBand<T> octaveBand;
+        fm = FrequencyCalculator::calculateExactMidBandFrequency(b, G, fr, x);
+        fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, x);
+        octaveBand.indexX = x;
+        octaveBand.base = base;
+        octaveBand.midBandFrequency = fm;
+        octaveBand.lowerEdgeBandFrequency = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, fm);
+        octaveBand.upperEdgeBandFrequency = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, fm);
+        octaveBand.nominalMidBandFrequency = FrequencyCalculator::calculateNominalFrequency<T>(b, fm10);
+        octaveBands.push_back(octaveBand);
+    }
+
+    return octaveBands;
+}
+
+
+// Inline Method Definitions
+/*
+ * "ANSI S1.11: Specification for Octave, Half-Octave, and Third Octave Band Filter Sets" (PDF). Retrieved 7 March 2018.
+ */
+template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOctaveBandsByFrequencyInterval(OctaveBandBase base, size_t b, T minFreq, T maxFreq) {
+    const T fr = T(1000); //reference frequency
+    const T G2 = T(2);
+    const double G10 = pow(T(10), T(3)/T(10));
+
+    T fm; //exact midband frequency
+    T fm10;
+    std::vector<OctaveBand<T>> octaveBands;
+    int x = -200;
+    //int currentBandIndex = 0;
     T G = (base == OctaveBandBase::Base10) ? G10 : G2;
 
     while(true) {
         OctaveBand<T> octaveBand;
-        fm = FrequencyCalculator::calculateExactMidBandFrequency(b, G, fr, i);
-        fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, i);
-        octaveBand.indexX = currentBandIndex;
+        fm = FrequencyCalculator::calculateExactMidBandFrequency(b, G, fr, x);
+        fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, x);
+        octaveBand.indexX = x;
         octaveBand.base = base;
         octaveBand.midBandFrequency = fm;
         octaveBand.lowerEdgeBandFrequency = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, fm);
         octaveBand.upperEdgeBandFrequency = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, fm);
         if(octaveBand.upperEdgeBandFrequency < minFreq) {
-            i += T(1);
+            x++;
             continue;
         }
         octaveBand.nominalMidBandFrequency = FrequencyCalculator::calculateNominalFrequency<T>(b, fm10);
         if(octaveBand.lowerEdgeBandFrequency > maxFreq)
             break;
         octaveBands.push_back(octaveBand);
-        i += T(1);
-        currentBandIndex += T(1);
+        x++;
+        //currentBandIndex++;
     }
 
     return octaveBands;
+}
+
+template<class T>  inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOctaveBands(size_t b) {
+    int lowerIndex = 0;
+    int upperIndex = 0;
+    bool isValid = false;
+    getIndexBoundaries(b, lowerIndex, upperIndex, isValid);
+    if (isValid) {
+        return calculateOctaveBandsByXIndices(OctaveBandBase::Base10, b, lowerIndex, upperIndex);
+    }
+    else {
+        return calculateOctaveBandsByFrequencyInterval(OctaveBandBase::Base10, b, 20, 20000);
+    }
 }
 
 /*

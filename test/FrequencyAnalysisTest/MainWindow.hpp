@@ -36,4 +36,9 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    void initAnalysisModeComboBox();
+    void updateAnalysisMode();
+    const QList<int> bandDesignators = {1, 2, 3, 4, 6, 8, 12, 24};
+    int bandDesignator = 0;
+    int bandAmount = 0;
 };
