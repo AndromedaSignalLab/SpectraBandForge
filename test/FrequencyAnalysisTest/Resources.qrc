@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/Graphics/Raster/CoreAudio.png</file>
+        <file>Resources/Graphics/Raster/WDM.png</file>
+        <file>Resources/Graphics/Raster/DirectX.png</file>
+        <file>Resources/Graphics/Raster/alsa.png</file>
+        <file>Resources/Graphics/Raster/oss.png</file>
+        <file>Resources/Graphics/Raster/JackAudio.png</file>
+        <file>Resources/Graphics/Raster/ASIO.png</file>
+    </qresource>
+</RCC>

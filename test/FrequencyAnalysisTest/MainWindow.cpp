@@ -22,12 +22,17 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->listWidget->setCurrentRow(0);
+    portaudio::System::initialize();
+
+    initAudioIcons();
+    initBitDepthValues();
+    initSamplingFrequencyValues();
+    initAudioInterfaceList();
     initAnalysisModeComboBox();
     updateAnalysisMode();
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
@@ -124,4 +129,125 @@ void MainWindow::updateAnalysisMode() {
         ui->octaveBandsTable->setItem(currentRowCount-1, 4, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency)));
         ui->octaveBandsTable->setItem(currentRowCount-1, 5, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency - octaveBand.lowerEdgeBandFrequency)));
     }
+}
+
+void MainWindow::initAudioIcons() {
+    iconCoreAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/CoreAudio.png"));
+    iconWdmAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/WDM.png"));
+    iconDirectXAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/DirectX.png"));
+    iconAlsaAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/alsa.png"));
+    iconOssAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/oss.png"));
+    iconAsioAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/ASIO.png"));
+    iconJackAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/JackAudio.png"));
+}
+
+void MainWindow::addDeviceToDeviceList(portaudio::Device & device) {
+  std::cout << "--------------------------------------- device #" << device.index() << std::endl;
+
+  // Mark global and API specific default devices:
+  bool defaultDisplayed = false;
+  QIcon * icon = &emptyIcon;
+
+  if(device.isSystemDefaultInputDevice()) {
+    std::cout << "[ Default Input";
+    defaultDisplayed = true;
+  }
+  else if(device.isHostApiDefaultInputDevice()) {
+    std::cout << "[ Default " << device.hostApi().name() << " Input";
+    defaultDisplayed = true;
+  }
+
+  if(device.isSystemDefaultOutputDevice()) {
+    std::cout << (defaultDisplayed ? "," : "[");
+    std::cout << " Default Output";
+    defaultDisplayed = true;
+  }
+  else if (device.isHostApiDefaultOutputDevice()) {
+    std::cout << (defaultDisplayed ? "," : "[");
+    std::cout << " Default " << device.hostApi().name() << " Output";
+    defaultDisplayed = true;
+  }
+
+  if(defaultDisplayed)
+    std::cout << " ]" << std::endl;
+  if(!device.isInputOnlyDevice()) {
+    QString devStr = QString("%1 - %2").arg(device.hostApi().name(), device.name());
+    if(device.isSystemDefaultOutputDevice() || device.isHostApiDefaultOutputDevice())
+      devStr += " (Default)";
+    switch(device.hostApi().typeId()) {
+    case PaHostApiTypeId::paALSA:
+      icon = &iconAlsaAudio;
+      break;
+    case PaHostApiTypeId::paOSS:
+      icon = &iconOssAudio;
+      break;
+    case PaHostApiTypeId::paCoreAudio:
+      icon = &iconCoreAudio;
+      break;
+    case PaHostApiTypeId::paDirectSound:
+      icon = &iconDirectXAudio;
+      break;
+    case PaHostApiTypeId::paWDMKS:
+    case PaHostApiTypeId::paWASAPI:
+    case PaHostApiTypeId::paMME:
+      icon = &iconWdmAudio;
+      break;
+    case PaHostApiTypeId::paJACK:
+      icon = &iconAsioAudio;
+      break;
+    default:
+      break;
+    }
+
+    ui->comboBoxSoundDevices->addItem(*icon, devStr, device.index());
+    qDebug() << "Device Name: " << devStr;
+    qDebug() << "Device Id: " << device.index();
+  }
+  // Print device info:
+  std::cout << "Name                        = " << device.name() << std::endl;
+  std::cout << "Host API                    = " << device.hostApi().name() << std::endl;
+  std::cout << "Max inputs = " << device.maxInputChannels() << ", Max outputs = " << device.maxOutputChannels() << std::endl;
+
+  std::cout << "Default low input latency   = " << device.defaultLowInputLatency() << std::endl; // 8.3
+  std::cout << "Default low output latency  = " << device.defaultLowOutputLatency() << std::endl; // 8.3
+  std::cout << "Default high input latency  = " << device.defaultHighInputLatency() << std::endl; // 8.3
+  std::cout << "Default high output latency = " << device.defaultHighOutputLatency() << std::endl; // 8.3
+}
+
+void MainWindow::initAudioInterfaceList() {
+  portaudio::System &sys = portaudio::System::instance();
+
+  try {
+    addDeviceToDeviceList(sys.defaultOutputDevice());
+
+    for (portaudio::System::DeviceIterator device = sys.devicesBegin();
+         device != sys.devicesEnd(); ++device) {
+      if (device->isSystemDefaultOutputDevice() || device->isInputOnlyDevice())
+        continue;
+      addDeviceToDeviceList(*device);
+    }
+  } catch (const portaudio::PaException &e) {
+    std::cout << "A PortAudio error occured: " << e.paErrorText() << std::endl;
+  } catch (const portaudio::PaCppException &e) {
+    std::cout << "A PortAudioCpp error occured: " << e.what() << std::endl;
+  } catch (const std::exception &e) {
+    std::cout << "A generic exception occured: " << e.what() << std::endl;
+  } catch (...) {
+    std::cout << "An unknown exception occured." << std::endl;
+  }
+}
+void MainWindow::initBitDepthValues() {
+    ui->bitDepths->setItemData(0, QVariant(8));
+    ui->bitDepths->setItemData(1, QVariant(16));
+    ui->bitDepths->setItemData(2, QVariant(24));
+}
+void MainWindow::initSamplingFrequencyValues() {
+    ui->samplingFrequencies->setItemData(0, QVariant(11000));
+    ui->samplingFrequencies->setItemData(1, QVariant(22000));
+    ui->samplingFrequencies->setItemData(2, QVariant(24000));
+    ui->samplingFrequencies->setItemData(3, QVariant(44100));
+    ui->samplingFrequencies->setItemData(4, QVariant(48000));
+    ui->samplingFrequencies->setItemData(5, QVariant(96000));
+    ui->samplingFrequencies->setItemData(6, QVariant(192000));
+
 }

@@ -12,6 +12,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 #pragma once
 
 #include <QMainWindow>
+#include <portaudiocpp/PortAudioCpp.hxx>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -38,7 +39,20 @@ private:
     Ui::MainWindow *ui;
     void initAnalysisModeComboBox();
     void updateAnalysisMode();
+    void addDeviceToDeviceList(portaudio::Device & device);
+    void initAudioIcons();
+    void initAudioInterfaceList();
+    void initBitDepthValues();
+    void initSamplingFrequencyValues();
     const QList<int> bandDesignators = {1, 2, 3, 4, 6, 8, 12, 24};
     int bandDesignator = 0;
     int bandAmount = 0;
+    QIcon iconCoreAudio;
+    QIcon iconWdmAudio;
+    QIcon iconDirectXAudio;
+    QIcon iconAlsaAudio;
+    QIcon iconOssAudio;
+    QIcon iconAsioAudio;
+    QIcon iconJackAudio;
+    QIcon emptyIcon;
 };
