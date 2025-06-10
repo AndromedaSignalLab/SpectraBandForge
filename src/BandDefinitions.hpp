@@ -46,7 +46,7 @@ template <class T>
 struct OctaveBand {
     int indexX;
     OctaveBandBase base = OctaveBandBase::Base10;
-    T midBandFrequency;
+    T exactMidBandFrequency;
     T nominalMidBandFrequency;
     T lowerEdgeBandFrequency;
     T upperEdgeBandFrequency;

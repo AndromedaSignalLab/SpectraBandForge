@@ -119,7 +119,7 @@ void MainWindow::updateAnalysisMode() {
         ui->octaveBandsTable->insertRow(currentRowCount++);
         ui->octaveBandsTable->setItem(currentRowCount-1, 0, new QTableWidgetItem(QString::number(octaveBand.indexX)));
         ui->octaveBandsTable->setItem(currentRowCount-1, 1, new QTableWidgetItem(QString::number(octaveBand.nominalMidBandFrequency)));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 2, new QTableWidgetItem(QString::number(octaveBand.midBandFrequency)));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 2, new QTableWidgetItem(QString::number(octaveBand.exactMidBandFrequency)));
         ui->octaveBandsTable->setItem(currentRowCount-1, 3, new QTableWidgetItem(QString::number(octaveBand.lowerEdgeBandFrequency)));
         ui->octaveBandsTable->setItem(currentRowCount-1, 4, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency)));
         ui->octaveBandsTable->setItem(currentRowCount-1, 5, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency - octaveBand.lowerEdgeBandFrequency)));

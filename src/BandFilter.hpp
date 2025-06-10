@@ -144,7 +144,7 @@ template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOcta
         fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, x);
         octaveBand.indexX = x;
         octaveBand.base = base;
-        octaveBand.midBandFrequency = fm;
+        octaveBand.exactMidBandFrequency = fm;
         octaveBand.lowerEdgeBandFrequency = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, fm);
         octaveBand.upperEdgeBandFrequency = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, fm);
         octaveBand.nominalMidBandFrequency = FrequencyCalculator::calculateNominalFrequency<T>(b, fm10);
@@ -177,7 +177,7 @@ template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOcta
         fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, x);
         octaveBand.indexX = x;
         octaveBand.base = base;
-        octaveBand.midBandFrequency = fm;
+        octaveBand.exactMidBandFrequency = fm;
         octaveBand.lowerEdgeBandFrequency = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, fm);
         octaveBand.upperEdgeBandFrequency = FrequencyCalculator::calculateUpperEdgeBandFrequency(b, G, fm);
         if(octaveBand.upperEdgeBandFrequency < minFreq) {
