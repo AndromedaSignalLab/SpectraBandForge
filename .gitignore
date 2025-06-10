@@ -108,4 +108,7 @@ compile_commands.json
 
 # Qt Creator backups
 
+# CLion
+**/.idea/**
+
 # End of https://www.gitignore.io/api/qt,c++,qtcreator
