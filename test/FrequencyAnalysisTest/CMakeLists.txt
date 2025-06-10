@@ -18,13 +18,24 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
+
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+endif()
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Boost REQUIRED)
+find_package(PortAudio REQUIRED)
+find_package(PortAudioCPP REQUIRED)
+find_package(LibSamplerate REQUIRED)
 
 include_directories(../../src)
 include_directories(../../../AndromedaCommon/src)
 include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${PORTAUDIO_INCLUDE_DIRS})
+include_directories(${PORTAUDIOCPP_INCLUDE_DIRS})
 
 file(GLOB SpectraBandForgeSrc
     "../src/*.hpp"
@@ -69,7 +80,13 @@ else()
     endif()
 endif()
 
-target_link_libraries(FrequencyAnalysisTest PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(FrequencyAnalysisTest PRIVATE
+        Qt${QT_VERSION_MAJOR}::Widgets
+        ${Boost_LIBRARIES}
+        ${PORTAUDIO_LIBRARIES}
+        ${PORTAUDIOCPP_LIBRARIES}
+        ${LIBSAMPLERATE_LIBRARY}
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
