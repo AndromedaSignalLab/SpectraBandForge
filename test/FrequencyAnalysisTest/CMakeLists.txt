@@ -20,8 +20,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Boost REQUIRED)
 
 include_directories(../../src)
+include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB SpectraBandForgeSrc
     "../src/*.hpp"
