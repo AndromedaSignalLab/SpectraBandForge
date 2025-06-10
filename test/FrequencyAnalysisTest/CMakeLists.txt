@@ -23,11 +23,17 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Boost REQUIRED)
 
 include_directories(../../src)
+include_directories(../../../AndromedaCommon/src)
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB SpectraBandForgeSrc
     "../src/*.hpp"
     "../src/*.cpp"
+)
+
+file(GLOB AndromedaCommonSrc
+        "../../../AndromedaCommon/src/*.hpp"
+        "../../../AndromedaCommon/src/*.cpp"
 )
 
 file(GLOB FrequencyAnalysisTestSrc

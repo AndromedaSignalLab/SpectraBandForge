@@ -67,15 +67,15 @@ template<class T> inline T FrequencyCalculator::calculateNominalFrequency(size_t
     if(b == 1 || b == 3)
         return getNominalFrequency(fm);
     else if(b == 2) {
-        return AndromedaDSP::MathUtil::roundBy(fm, 3);
+        return AndromedaSignalLab::MathUtil::roundBy(fm, 3);
     }
-    int firstDigit = AndromedaDSP::MathUtil::firstDigit(fm);
+    int firstDigit = AndromedaSignalLab::MathUtil::firstDigit(fm);
     if(firstDigit == 0)
-        return AndromedaDSP::MathUtil::roundBy(fm, 0);
+        return AndromedaSignalLab::MathUtil::roundBy(fm, 0);
     if(firstDigit<5){
-        return AndromedaDSP::MathUtil::roundBy(fm, 3);
+        return AndromedaSignalLab::MathUtil::roundBy(fm, 3);
     } else
-        return AndromedaDSP::MathUtil::roundBy(fm, 2);
+        return AndromedaSignalLab::MathUtil::roundBy(fm, 2);
 }
 
 template <class T> inline T FrequencyCalculator::calculateLowerEdgeBandFrequency(size_t b, T G, T fm){
