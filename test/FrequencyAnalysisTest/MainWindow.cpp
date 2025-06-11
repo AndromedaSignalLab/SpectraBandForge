@@ -37,19 +37,19 @@ MainWindow::~MainWindow() {
 }
 
 double threeWayRound(double value) {
-    double int_part = std::floor(value);
-    double frac = value - int_part;
+    double intPart = std::floor(value);
+    double fracPart = value - intPart;
 
-    if (int_part < 1.0) {
-        return std::round(frac * 100.0) / 100.0;
+    if (intPart < 1.0) {
+        return std::round(fracPart * 100.0) / 100.0;
     }
 
-    if (frac < 0.25) {
-        return int_part;
-    } else if (frac > 0.75) {
-        return int_part + 1.0;
+    if (fracPart < 0.25) {
+        return intPart;
+    } else if (fracPart > 0.75) {
+        return intPart + 1.0;
     } else {
-        return int_part + 0.5;
+        return intPart + 0.5;
     }
 }
 
@@ -73,8 +73,8 @@ double beautifulFrequency(double frequency, bool &iskHz) {
     }
     else {
         iskHz = true;
-        output = frequency / 1000;
-        output = threeWayRound(output);
+        output = threeWayRound(frequency);
+        output = output / 1000;
     }
     return output;
 }
@@ -120,14 +120,19 @@ void MainWindow::updateAnalysisMode() {
     ui->octaveBandsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     std::vector<OctaveBand<double>> octaveBands = BandFilter<double>::calculateOctaveBands(bandDesignator);
     int currentRowCount = 0;
+    double currentNominalMidBand;
+    bool isCurrentUnitKHz;
+    QString currentUnit;
     for (OctaveBand<double> &octaveBand : octaveBands) {
         ui->octaveBandsTable->insertRow(currentRowCount++);
         ui->octaveBandsTable->setItem(currentRowCount-1, 0, new QTableWidgetItem(QString::number(octaveBand.indexX)));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 1, new QTableWidgetItem(QString::number(octaveBand.nominalMidBandFrequency)));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 2, new QTableWidgetItem(QString::number(octaveBand.exactMidBandFrequency)));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 3, new QTableWidgetItem(QString::number(octaveBand.lowerEdgeBandFrequency)));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 4, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency)));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 5, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency - octaveBand.lowerEdgeBandFrequency)));
+        currentNominalMidBand = beautifulFrequency(octaveBand.nominalMidBandFrequency, isCurrentUnitKHz);
+        isCurrentUnitKHz ? currentUnit = "kHz" : currentUnit = "Hz";
+        ui->octaveBandsTable->setItem(currentRowCount-1, 1, new QTableWidgetItem(QString::number(currentNominalMidBand) + " " + currentUnit));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 2, new QTableWidgetItem(QString::number(octaveBand.exactMidBandFrequency) + " Hz"));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 3, new QTableWidgetItem(QString::number(octaveBand.lowerEdgeBandFrequency) + " Hz"));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 4, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency) + " Hz"));
+        ui->octaveBandsTable->setItem(currentRowCount-1, 5, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency - octaveBand.lowerEdgeBandFrequency) + " Hz"));
     }
 }
 
