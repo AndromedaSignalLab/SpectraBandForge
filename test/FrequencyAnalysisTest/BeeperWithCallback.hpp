@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include "Enums.hpp"
 #include <QObject>
 
 class BeeperWithCallback : public QObject

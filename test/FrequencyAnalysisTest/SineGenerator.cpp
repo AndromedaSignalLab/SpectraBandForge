@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <cassert>
-#include <cstddef>
 #include <numbers>
 
 SineGenerator::SineGenerator(int sineTableSize) {
