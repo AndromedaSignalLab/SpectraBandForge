@@ -15,7 +15,7 @@ public:
     SineGenerator(int tableSize);
     ~SineGenerator();
 
-    int generate(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+    int read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
 
 private:

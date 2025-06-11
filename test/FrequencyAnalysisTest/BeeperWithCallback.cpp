@@ -19,7 +19,7 @@ int BeeperWithCallback::open()
 
     //portaudio::MemFunCallbackStream<SineGenerator> stream(params, sineGenerator, &SineGenerator::generate);
     portaudio::MemFunCallbackStream<SineGenerator> stream;
-    stream.open(params, sineGenerator, &SineGenerator::generate);
+    stream.open(params, sineGenerator, &SineGenerator::read);
 
     qDebug()<<"Stream started";
     stream.start();

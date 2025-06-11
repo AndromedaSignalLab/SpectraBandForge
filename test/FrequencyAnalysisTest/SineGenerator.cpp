@@ -20,7 +20,7 @@ SineGenerator::~SineGenerator() {
     delete[] table;
 }
 
-int SineGenerator::generate(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+int SineGenerator::read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
     const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags) {
     assert(outputBuffer != nullptr);
 
