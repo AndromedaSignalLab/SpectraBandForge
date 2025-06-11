@@ -16,6 +16,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 #include "./ui_MainWindow.h"
 
+#include "BeeperWithCallback.hpp"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -30,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
     initAudioInterfaceList();
     initAnalysisModeComboBox();
     updateAnalysisMode();
+    BeeperWithCallback b;
+    b.open();
 }
 
 MainWindow::~MainWindow() {
