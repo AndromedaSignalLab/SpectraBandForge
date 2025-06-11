@@ -1,6 +1,6 @@
 #pragma once
-#include <libopenmpt/libopenmpt.hpp>
 #include <portaudiocpp/PortAudioCpp.hxx>
+#include  <vector>
 
 
 // Some constants:
@@ -19,8 +19,7 @@ public:
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
 
 private:
-    float *table;
+    std::vector<float> table;
     int tableSize;
-    int leftPhase;
-    int rightPhase;
+    int phase;
 };

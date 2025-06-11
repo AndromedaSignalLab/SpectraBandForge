@@ -7,17 +7,15 @@
 
 SineGenerator::SineGenerator(int tableSize) {
     this->tableSize = tableSize;
-    this->leftPhase = 0;
-    this->rightPhase = 0;
+    this->phase = 0;
     double twoPi = std::numbers::pi * 2.0;
-    table = new float[tableSize];
+    table.resize(tableSize);
     for (int i = 0; i < tableSize; ++i) {
         table[i] = 0.125f * sin(((double)i/(double)tableSize)*twoPi);
     }
 }
 
 SineGenerator::~SineGenerator() {
-    delete[] table;
 }
 
 int SineGenerator::read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
@@ -27,16 +25,12 @@ int SineGenerator::read(const void *inputBuffer, void *outputBuffer, unsigned lo
     float **out = static_cast<float **>(outputBuffer);
 
     for (unsigned int i = 0; i < framesPerBuffer; ++i) {
-        out[0][i] = table[leftPhase];
-        out[1][i] = table[rightPhase];
+        out[0][i] = table[phase];
+        out[1][i] = table[phase];
 
-        leftPhase += 1;
-        if (leftPhase >= tableSize)
-            leftPhase -= tableSize;
-
-        rightPhase += 3;
-        if (rightPhase >= tableSize)
-            rightPhase -= tableSize;
+        phase++;
+        if (phase >= tableSize)
+            phase -= tableSize;
     }
 
     return paContinue;
