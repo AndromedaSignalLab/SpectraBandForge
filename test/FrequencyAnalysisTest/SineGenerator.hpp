@@ -1,25 +1,29 @@
 #pragma once
 #include <portaudiocpp/PortAudioCpp.hxx>
 #include  <vector>
-
-
-// Some constants:
-const int NUM_SECONDS = 4;
-const double SAMPLE_RATE = 44100.0;
-const int FRAMES_PER_BUFFER = 64;
-const int TABLE_SIZE = 200;
+#include  <mutex>
 
 // SineGenerator class:
 class SineGenerator {
 public:
-    SineGenerator(int tableSize);
-    ~SineGenerator();
+    SineGenerator(int sineTableSize = 8192);
 
     int read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
 
+    void setFrequency(double frequency);
+    double getFrequency() const;
+    void setSampleRate(double sampleRate);
+    double getSampleRate() const;
+    void setVolume(double volume);
+    double getVolume() const;
+
 private:
-    std::vector<float> table;
-    int tableSize;
+    std::mutex soundDataMutex;
+    std::vector<float> sineTable;
+    int sineTableSize;
     int phase;
+    double frequency = 440.0;
+    double sampleRate = 44100.0;
+    double volume = 0.125f;
 };

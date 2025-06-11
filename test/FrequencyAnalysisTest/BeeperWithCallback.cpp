@@ -7,9 +7,14 @@
 #include "Enums.hpp"
 #include "SineGenerator.hpp"
 
+const int NUM_SECONDS = 4;
+const double SAMPLE_RATE = 44100.0;
+const int FRAMES_PER_BUFFER = 64;
+
+
 int BeeperWithCallback::open()
 {
-    SineGenerator sineGenerator(TABLE_SIZE);
+    SineGenerator sineGenerator;
 
 
     // Set up the parameters required to open a (Callback)Stream:
@@ -25,6 +30,10 @@ int BeeperWithCallback::open()
     stream.start();
 
     portAudioSys.sleep(NUM_SECONDS * 1000);
+    sineGenerator.setFrequency(880);
+    sineGenerator.setVolume(0.5);
+    portAudioSys.sleep(NUM_SECONDS * 1000);
+
 
     stream.stop();
     qDebug()<<"Stream stopped";
