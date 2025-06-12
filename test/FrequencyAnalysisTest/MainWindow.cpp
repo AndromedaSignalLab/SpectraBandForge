@@ -16,7 +16,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 #include "./ui_MainWindow.h"
 
-#include "BeeperWithCallback.hpp"
+constexpr double SAMPLE_RATE = 44100.0;
+constexpr int FRAMES_PER_BUFFER = 64;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -32,11 +33,13 @@ MainWindow::MainWindow(QWidget *parent)
     initAudioInterfaceList();
     initAnalysisModeComboBox();
     updateAnalysisMode();
-    BeeperWithCallback b;
-    b.open();
+    initAudio();
 }
 
 MainWindow::~MainWindow() {
+    if (stream.isActive())
+      stream.stop();
+    stream.close();
     delete ui;
 }
 
@@ -93,6 +96,7 @@ void MainWindow::on_frequencySlider_valueChanged(int value) {
     double width = ui->frequencySlider->maximum()- ui->frequencySlider->minimum();
 
     double frequency = xToFrequency(value, f_min, f_max, width);
+    sineGenerator.setFrequency(frequency);
     bool isKhz;
     frequency = beautifulFrequency(frequency, isKhz);
     if(isKhz)
@@ -258,5 +262,24 @@ void MainWindow::initSamplingFrequencyValues() {
     ui->samplingFrequencies->setItemData(4, QVariant(48000));
     ui->samplingFrequencies->setItemData(5, QVariant(96000));
     ui->samplingFrequencies->setItemData(6, QVariant(192000));
+}
+void MainWindow::initAudio() {
+  // Set up the parameters required to open a (Callback)Stream:
+  portaudio::System & portAudioSys = portaudio::System::instance();
+  portaudio::DirectionSpecificStreamParameters outParams(portAudioSys.defaultOutputDevice(), 2, portaudio::FLOAT32, false, portAudioSys.defaultOutputDevice().defaultLowOutputLatency(), nullptr);
+  portaudio::StreamParameters params(portaudio::DirectionSpecificStreamParameters::null(), outParams, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff);
 
+  //portaudio::MemFunCallbackStream<SineGenerator> stream(params, sineGenerator, &SineGenerator::generate);
+  stream.open(params, sineGenerator, &SineGenerator::read);
+}
+void MainWindow::on_startOrStopSineSweepAnalysisButton_clicked() {
+  if(sineSweepAnalysisStarted) {
+    ui->startOrStopSineSweepAnalysisButton->setText("Start Analysis");
+    stream.stop();
+  }
+  else {
+    ui->startOrStopSineSweepAnalysisButton->setText("Stop Analysis");
+    stream.start();
+  }
+  sineSweepAnalysisStarted = !sineSweepAnalysisStarted;
 }

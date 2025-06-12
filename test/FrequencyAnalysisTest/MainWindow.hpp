@@ -11,6 +11,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 #pragma once
 
+#include "SineGenerator.hpp"
+
 #include <QMainWindow>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
@@ -35,7 +37,9 @@ private slots:
 
     void on_analysisModeComboBox_currentIndexChanged(int index);
 
-private:
+    void on_startOrStopSineSweepAnalysisButton_clicked();
+
+  private:
     Ui::MainWindow *ui;
     void initAnalysisModeComboBox();
     void updateAnalysisMode();
@@ -44,6 +48,7 @@ private:
     void initAudioInterfaceList();
     void initBitDepthValues();
     void initSamplingFrequencyValues();
+    void initAudio();
     const QList<int> bandDesignators = {1, 2, 3, 4, 6, 8, 12, 24};
     int bandDesignator = 0;
     int bandAmount = 0;
@@ -55,4 +60,7 @@ private:
     QIcon iconAsioAudio;
     QIcon iconJackAudio;
     QIcon emptyIcon;
+    SineGenerator sineGenerator;
+    portaudio::MemFunCallbackStream<SineGenerator> stream;
+    bool sineSweepAnalysisStarted = false;
 };
