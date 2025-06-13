@@ -16,17 +16,22 @@ You should have received a copy of the GNU Lesser General Public License along w
 // SineGenerator class:
 class SineGenerator {
 public:
-    SineGenerator(int sineTableSize = 8192);
+    SineGenerator(const int sineTableSize = 8192);
 
     int read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
 
-    void setFrequency(double frequency);
+    int generate(float *outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
+    int generateStereo(void *outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
+
+    void setFrequency(const double frequency);
     double getFrequency() const;
-    void setSampleRate(double sampleRate);
+    void setSampleRate(const double sampleRate);
     double getSampleRate() const;
-    void setVolume(double volume);
+    void setVolume(const double volume);
     double getVolume() const;
+    void setGain(const double gain);
+    double getGain() const;
 
 private:
     std::mutex soundDataMutex;
@@ -35,5 +40,6 @@ private:
     int phase;
     double frequency = 440.0;
     double sampleRate = 44100.0;
-    double volume = 0.125f;
+    double gain;
+    double volume;
 };
