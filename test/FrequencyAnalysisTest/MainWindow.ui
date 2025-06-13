@@ -393,7 +393,7 @@
          </rect>
         </property>
         <property name="maximum">
-         <number>500</number>
+         <number>499</number>
         </property>
         <property name="orientation">
          <enum>Qt::Orientation::Horizontal</enum>
@@ -441,7 +441,7 @@
          <string>Hz</string>
         </property>
        </widget>
-       <widget class="QSlider" name="horizontalSlider_3">
+       <widget class="QSlider" name="sineSweepAmplitudeSlider">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -449,6 +449,9 @@
           <width>381</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="maximum">
+         <number>499</number>
         </property>
         <property name="orientation">
          <enum>Qt::Orientation::Horizontal</enum>
@@ -467,7 +470,7 @@
          <string>Amplitude:</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_14">
+       <widget class="QLabel" name="sineSweepAmplitudeLabel">
         <property name="geometry">
          <rect>
           <x>90</x>

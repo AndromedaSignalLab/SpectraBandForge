@@ -35,6 +35,8 @@ private slots:
 
     void on_frequencySlider_valueChanged(int value);
 
+    void on_sineSweepAmplitudeSlider_valueChanged(int value);
+
     void on_analysisModeComboBox_currentIndexChanged(int index);
 
     void on_startOrStopSineSweepAnalysisButton_clicked();

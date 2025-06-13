@@ -107,6 +107,17 @@ void MainWindow::on_frequencySlider_valueChanged(int value) {
     ui->frequencyLabel->setText(QString::number(frequency));
 }
 
+void MainWindow::on_sineSweepAmplitudeSlider_valueChanged(int value) {
+    double volumeMinimum = -100.0;
+    double volumeMaximum = 20.0;
+    double maxValue = ui->sineSweepAmplitudeSlider->maximum();
+    double minValue = ui->sineSweepAmplitudeSlider->minimum();
+    double width = maxValue - minValue;
+    double volume = volumeMinimum + ((double(value) - minValue) / (maxValue - minValue)) * (volumeMaximum - volumeMinimum);
+    sineGenerator.setVolume(volume);
+    ui->sineSweepAmplitudeLabel->setText(QString::number(volume));
+}
+
 void MainWindow::on_analysisModeComboBox_currentIndexChanged(int index) {
     updateAnalysisMode();
 }
