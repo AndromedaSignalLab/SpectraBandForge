@@ -14,9 +14,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include <cmath>
 #include <numbers>
 
-SineGenerator::SineGenerator(const int sineTableSize) {
-    this->sineTableSize = sineTableSize;
-    this->phase = 0;
+SineGenerator::SineGenerator(const int sineTableSize) : sineTableSize(sineTableSize), phase(0.0) {
     updateCurrentVariables();
     sineTable.resize(sineTableSize);
     setGain(0.125f);
@@ -66,7 +64,7 @@ double SineGenerator::getVolume() const {
 void SineGenerator::setGain(const double gain) {
     std::lock_guard<std::mutex> lock(soundDataMutex);
     this->gain = std::max(gain, 0.00001);
-    volume = 20 * log10(gain);
+    volume = 20 * log10(this->gain);
 }
 
 double SineGenerator::getGain() const {
@@ -76,17 +74,29 @@ double SineGenerator::getGain() const {
 int SineGenerator::generate(float* outputBuffer, unsigned long size,
                             bool addToPreviousWave) {
     assert(outputBuffer != nullptr);
-    soundDataMutex.lock();
-    for(unsigned int i = 0; i < size; ++i) {
-        if(addToPreviousWave)
-            outputBuffer[i] += sineTable[phase] * gain;
-        else
-            outputBuffer[i] = sineTable[phase] * gain;
-        phase += static_cast<int>((frequency * sineTableSize) / sampleRate);
-        if(phase >= sineTableSize)
-            phase -= sineTableSize;
+    float sampleAmplitude;
+    std::lock_guard<std::mutex> lock(soundDataMutex);
+    for (unsigned int i = 0; i < size; ++i) {
+        sampleAmplitude = useTable ? sineTable[static_cast<int>(phase)] : std::sin(phase);
+        sampleAmplitude *= gain;
+        if(addToPreviousWave) {
+            outputBuffer[i] += sampleAmplitude;
+            outputBuffer[i] += sampleAmplitude;
+        }
+        else {
+            outputBuffer[i] = sampleAmplitude;
+            outputBuffer[i] = sampleAmplitude;
+        }
+        phase += useTable ? tableIndexIncrement : phaseIncrement;
+        if(useTable) {
+            if(phase >= sineTableSize)
+                phase -= sineTableSize;
+        } else {
+            if (phase >= twoPi)
+                phase -= twoPi;
+        }
     }
-    soundDataMutex.unlock();
+
     return paContinue;
 }
 
@@ -96,10 +106,16 @@ int SineGenerator::generateStereo(float** outputBuffer, unsigned long size,
     float sampleAmplitude;
     std::lock_guard<std::mutex> lock(soundDataMutex);
     for (unsigned int i = 0; i < size; ++i) {
-        sampleAmplitude = useTable ? sineTable[phase] : std::sin(phase);
+        sampleAmplitude = useTable ? sineTable[static_cast<int>(phase)] : std::sin(phase);
         sampleAmplitude *= gain;
-        outputBuffer[0][i] = sampleAmplitude;
-        outputBuffer[1][i] = sampleAmplitude;
+        if(addToPreviousWave) {
+            outputBuffer[0][i] += sampleAmplitude;
+            outputBuffer[1][i] += sampleAmplitude;
+        }
+        else {
+            outputBuffer[0][i] = sampleAmplitude;
+            outputBuffer[1][i] = sampleAmplitude;
+        }
         phase += useTable ? tableIndexIncrement : phaseIncrement;
         if(useTable) {
             if(phase >= sineTableSize)
