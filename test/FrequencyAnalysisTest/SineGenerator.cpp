@@ -10,19 +10,18 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 #include "SineGenerator.hpp"
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
 #include <numbers>
 
 SineGenerator::SineGenerator(const int sineTableSize) {
     this->sineTableSize = sineTableSize;
     this->phase = 0;
-    double twoPi = std::numbers::pi * 2.0;
     sineTable.resize(sineTableSize);
     setGain(0.125f);
-    for (int i = 0; i < sineTableSize; ++i) {
-        sineTable[i] = sin(((double)i/(double)sineTableSize)*twoPi);
-        //table[i] = static_cast<float>(std::sin((2.0 * M_PI * i) / tableSize));
+    for(int i = 0; i < sineTableSize; ++i) {
+        sineTable[i] = sin(((double)i / (double)sineTableSize) * twoPi);
+        // table[i] = static_cast<float>(std::sin((2.0 * M_PI * i) / tableSize));
     }
 }
 
@@ -59,53 +58,60 @@ double SineGenerator::getVolume() const {
 void SineGenerator::setGain(const double gain) {
     std::lock_guard<std::mutex> lock(soundDataMutex);
     this->gain = std::max(gain, 0.00001);
-    volume = 20*log10(gain);
-    soundDataMutex.unlock();
+    volume = 20 * log10(gain);
 }
 
 double SineGenerator::getGain() const {
     return gain;
 }
 
-int SineGenerator::read(const void *inputBuffer, void *outputBuffer,
-                        unsigned long framesPerBuffer,
-                        const PaStreamCallbackTimeInfo *timeInfo,
-                        PaStreamCallbackFlags statusFlags) {
-  return generateStereo(outputBuffer, framesPerBuffer, false);
-}
-
-int SineGenerator::generate(float *outputBuffer, unsigned long size,
+int SineGenerator::generate(float* outputBuffer, unsigned long size,
                             bool addToPreviousWave) {
     assert(outputBuffer != nullptr);
     soundDataMutex.lock();
-    for (unsigned int i = 0; i < size; ++i) {
-      if (addToPreviousWave)
-        outputBuffer[i] += sineTable[phase] * gain;
-      else
-        outputBuffer[i] = sineTable[phase] * gain;
-      phase += static_cast<int>((frequency * sineTableSize) / sampleRate);
-      if (phase >= sineTableSize)
-        phase -= sineTableSize;
+    for(unsigned int i = 0; i < size; ++i) {
+        if(addToPreviousWave)
+            outputBuffer[i] += sineTable[phase] * gain;
+        else
+            outputBuffer[i] = sineTable[phase] * gain;
+        phase += static_cast<int>((frequency * sineTableSize) / sampleRate);
+        if(phase >= sineTableSize)
+            phase -= sineTableSize;
     }
     soundDataMutex.unlock();
     return paContinue;
 }
 
-int SineGenerator::generateStereo(void *outputBuffer, unsigned long size,
+int SineGenerator::generateStereo(float** outputBuffer, unsigned long size,
                                   bool addToPreviousWave) {
-  assert(outputBuffer != nullptr);
+    assert(outputBuffer != nullptr);
+    phaseIncrement = twoPi * frequency / sampleRate;
+    float sample;
 
-  float **out = static_cast<float **>(outputBuffer);
-
-  soundDataMutex.lock();
-  for (unsigned int i = 0; i < size; ++i) {
-    out[0][i] = sineTable[phase] * gain;
-    out[1][i] = sineTable[phase] * gain;
-
-    phase += static_cast<int>((frequency * sineTableSize) / sampleRate);
-    if (phase >= sineTableSize)
-      phase -= sineTableSize;
-  }
-  soundDataMutex.unlock();
-  return paContinue;
+    if(!useTable) {
+        soundDataMutex.lock();
+        for (unsigned int i = 0; i < size; ++i) {
+            sample = std::sin(phase) * gain;
+            outputBuffer[0][i] = sample;
+            outputBuffer[1][i] = sample;
+            phase += phaseIncrement;
+            if (phase >= twoPi)
+                phase -= twoPi;
+        }
+        soundDataMutex.unlock();
+    }
+    else {
+        phaseIncrement = (frequency * sineTableSize) / sampleRate;
+        soundDataMutex.lock();
+        for(unsigned int i = 0; i < size; ++i) {
+            sample = sineTable[phase] * gain;
+            outputBuffer[0][i] = sample;
+            outputBuffer[1][i] = sample;
+            phase += phaseIncrement;
+            if(phase >= sineTableSize)
+                phase -= sineTableSize;
+        }
+        soundDataMutex.unlock();
+    }
+    return paContinue;
 }

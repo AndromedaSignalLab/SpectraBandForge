@@ -76,6 +76,26 @@ else()
         add_executable(FrequencyAnalysisTest
             ${FrequencyAnalysisTestSrc}
             ${SpectraBandForgeSrc}
+                SineSweeper.cpp
+                SineSweeper.hpp
+                TestClass.cpp
+                TestClass.hpp
+                Deneme.cpp
+                Deneme.hpp
+                Deneme.cpp
+                Deneme.hpp
+                Deneme.cpp
+                Deneme.hpp
+                Deneme.cpp
+                Deneme.hpp
+                Deneme.cpp
+                Deneme.hpp
+                Deneme.cpp
+                Deneme.hpp
+                Deneme.cpp
+                Deneme.hpp
+                Deneme.cpp
+                Deneme.hpp
         )
     endif()
 endif()

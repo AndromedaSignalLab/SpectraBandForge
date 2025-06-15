@@ -9,20 +9,18 @@ This library is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 */
 #pragma once
+#include <mutex>
+#include <numbers>
 #include <portaudiocpp/PortAudioCpp.hxx>
-#include  <vector>
-#include  <mutex>
+#include <vector>
 
 // SineGenerator class:
 class SineGenerator {
-public:
-    SineGenerator(const int sineTableSize = 8192);
+  public:
+    SineGenerator(const int sineTableSize = 32768);
 
-    int read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
-        const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
-
-    int generate(float *outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
-    int generateStereo(void *outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
+    int generate(float* outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
+    int generateStereo(float** outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
 
     void setFrequency(const double frequency);
     double getFrequency() const;
@@ -33,13 +31,16 @@ public:
     void setGain(const double gain);
     double getGain() const;
 
-private:
+  private:
     std::mutex soundDataMutex;
     std::vector<float> sineTable;
     int sineTableSize;
-    int phase;
+    double phase;
+    double phaseIncrement;
     double frequency = 440.0;
     double sampleRate = 44100.0;
     double gain;
     double volume;
+    static constexpr double twoPi = std::numbers::pi * 2.0;
+    bool useTable = true;
 };

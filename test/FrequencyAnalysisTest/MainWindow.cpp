@@ -17,12 +17,10 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include "./ui_MainWindow.h"
 
 constexpr double SAMPLE_RATE = 44100.0;
-constexpr int FRAMES_PER_BUFFER = 64;
+constexpr int FRAMES_PER_BUFFER = 2408;
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
+MainWindow::MainWindow(QWidget* parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     ui->listWidget->setCurrentRow(0);
     portaudio::System::initialize();
@@ -34,11 +32,13 @@ MainWindow::MainWindow(QWidget *parent)
     initAnalysisModeComboBox();
     updateAnalysisMode();
     initAudio();
+    ui->sineSweepAmplitudeSlider->setValue(400);
+    ui->frequencySlider->setValue(317);
 }
 
 MainWindow::~MainWindow() {
-    if (stream.isActive())
-      stream.stop();
+    if(stream.isActive())
+        stream.stop();
     stream.close();
     delete ui;
 }
@@ -47,13 +47,13 @@ double threeWayRound(double value) {
     double intPart = std::floor(value);
     double fracPart = value - intPart;
 
-    if (intPart < 1.0) {
+    if(intPart < 1.0) {
         return std::round(fracPart * 100.0) / 100.0;
     }
 
-    if (fracPart < 0.25) {
+    if(fracPart < 0.25) {
         return intPart;
-    } else if (fracPart > 0.75) {
+    } else if(fracPart > 0.75) {
         return intPart + 1.0;
     } else {
         return intPart + 0.5;
@@ -61,8 +61,10 @@ double threeWayRound(double value) {
 }
 
 double xToFrequency(double x, double f_min, double f_max, double width) {
-    if (x < 0) x = 0;
-    if (x > width) x = width;
+    if(x < 0)
+        x = 0;
+    if(x > width)
+        x = width;
 
     double log_min = std::log10(f_min);
     double log_max = std::log10(f_max);
@@ -72,13 +74,12 @@ double xToFrequency(double x, double f_min, double f_max, double width) {
     return std::pow(10.0, log_f);
 }
 
-double beautifulFrequency(double frequency, bool &iskHz) {
+double beautifulFrequency(double frequency, bool& iskHz) {
     double output;
     if(frequency < 1000) {
         iskHz = false;
         output = threeWayRound(frequency);
-    }
-    else {
+    } else {
         iskHz = true;
         output = threeWayRound(frequency);
         output = output / 1000;
@@ -93,7 +94,7 @@ void MainWindow::on_listWidget_currentRowChanged(int currentRow) {
 void MainWindow::on_frequencySlider_valueChanged(int value) {
     double f_min = 0.5;
     double f_max = 22000.0;
-    double width = ui->frequencySlider->maximum()- ui->frequencySlider->minimum();
+    double width = ui->frequencySlider->maximum() - ui->frequencySlider->minimum();
 
     double frequency = xToFrequency(value, f_min, f_max, width);
     sineGenerator.setFrequency(frequency);
@@ -103,7 +104,7 @@ void MainWindow::on_frequencySlider_valueChanged(int value) {
         ui->frequencyUnitLabel->setText("kHz");
     else
         ui->frequencyUnitLabel->setText("Hz");
-    //double x = (log10(value) - log10(f_min)) / (log10(f_max) - log10(f_min)) * w;
+    // double x = (log10(value) - log10(f_min)) / (log10(f_max) - log10(f_min)) * w;
     ui->frequencyLabel->setText(QString::number(frequency));
 }
 
@@ -123,9 +124,9 @@ void MainWindow::on_analysisModeComboBox_currentIndexChanged(int index) {
 }
 
 void MainWindow::initAnalysisModeComboBox() {
-    //Let item data hold band designator value
+    // Let item data hold band designator value
 
-    for (int i = 0; i < bandDesignators.size(); i++) {
+    for(int i = 0; i < bandDesignators.size(); i++) {
         ui->analysisModeComboBox->setItemData(i, bandDesignators[i]);
     }
 }
@@ -142,16 +143,16 @@ void MainWindow::updateAnalysisMode() {
     double currentNominalMidBand;
     bool isCurrentUnitKHz;
     QString currentUnit;
-    for (OctaveBand<double> &octaveBand : octaveBands) {
+    for(OctaveBand<double>& octaveBand : octaveBands) {
         ui->octaveBandsTable->insertRow(currentRowCount++);
-        ui->octaveBandsTable->setItem(currentRowCount-1, 0, new QTableWidgetItem(QString::number(octaveBand.indexX)));
+        ui->octaveBandsTable->setItem(currentRowCount - 1, 0, new QTableWidgetItem(QString::number(octaveBand.indexX)));
         currentNominalMidBand = beautifulFrequency(octaveBand.nominalMidBandFrequency, isCurrentUnitKHz);
         isCurrentUnitKHz ? currentUnit = "kHz" : currentUnit = "Hz";
-        ui->octaveBandsTable->setItem(currentRowCount-1, 1, new QTableWidgetItem(QString::number(currentNominalMidBand) + " " + currentUnit));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 2, new QTableWidgetItem(QString::number(octaveBand.exactMidBandFrequency) + " Hz"));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 3, new QTableWidgetItem(QString::number(octaveBand.lowerEdgeBandFrequency) + " Hz"));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 4, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency) + " Hz"));
-        ui->octaveBandsTable->setItem(currentRowCount-1, 5, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency - octaveBand.lowerEdgeBandFrequency) + " Hz"));
+        ui->octaveBandsTable->setItem(currentRowCount - 1, 1, new QTableWidgetItem(QString::number(currentNominalMidBand) + " " + currentUnit));
+        ui->octaveBandsTable->setItem(currentRowCount - 1, 2, new QTableWidgetItem(QString::number(octaveBand.exactMidBandFrequency) + " Hz"));
+        ui->octaveBandsTable->setItem(currentRowCount - 1, 3, new QTableWidgetItem(QString::number(octaveBand.lowerEdgeBandFrequency) + " Hz"));
+        ui->octaveBandsTable->setItem(currentRowCount - 1, 4, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency) + " Hz"));
+        ui->octaveBandsTable->setItem(currentRowCount - 1, 5, new QTableWidgetItem(QString::number(octaveBand.upperEdgeBandFrequency - octaveBand.lowerEdgeBandFrequency) + " Hz"));
     }
 }
 
@@ -165,100 +166,98 @@ void MainWindow::initAudioIcons() {
     iconJackAudio.addPixmap(QPixmap(":/Resources/Graphics/Raster/JackAudio.png"));
 }
 
-void MainWindow::addDeviceToDeviceList(portaudio::Device & device) {
-  std::cout << "--------------------------------------- device #" << device.index() << std::endl;
+void MainWindow::addDeviceToDeviceList(portaudio::Device& device) {
+    std::cout << "--------------------------------------- device #" << device.index() << std::endl;
 
-  // Mark global and API specific default devices:
-  bool defaultDisplayed = false;
-  QIcon * icon = &emptyIcon;
+    // Mark global and API specific default devices:
+    bool defaultDisplayed = false;
+    QIcon* icon = &emptyIcon;
 
-  if(device.isSystemDefaultInputDevice()) {
-    std::cout << "[ Default Input";
-    defaultDisplayed = true;
-  }
-  else if(device.isHostApiDefaultInputDevice()) {
-    std::cout << "[ Default " << device.hostApi().name() << " Input";
-    defaultDisplayed = true;
-  }
-
-  if(device.isSystemDefaultOutputDevice()) {
-    std::cout << (defaultDisplayed ? "," : "[");
-    std::cout << " Default Output";
-    defaultDisplayed = true;
-  }
-  else if (device.isHostApiDefaultOutputDevice()) {
-    std::cout << (defaultDisplayed ? "," : "[");
-    std::cout << " Default " << device.hostApi().name() << " Output";
-    defaultDisplayed = true;
-  }
-
-  if(defaultDisplayed)
-    std::cout << " ]" << std::endl;
-  if(!device.isInputOnlyDevice()) {
-    QString devStr = QString("%1 - %2").arg(device.hostApi().name(), device.name());
-    if(device.isSystemDefaultOutputDevice() || device.isHostApiDefaultOutputDevice())
-      devStr += " (Default)";
-    switch(device.hostApi().typeId()) {
-    case PaHostApiTypeId::paALSA:
-      icon = &iconAlsaAudio;
-      break;
-    case PaHostApiTypeId::paOSS:
-      icon = &iconOssAudio;
-      break;
-    case PaHostApiTypeId::paCoreAudio:
-      icon = &iconCoreAudio;
-      break;
-    case PaHostApiTypeId::paDirectSound:
-      icon = &iconDirectXAudio;
-      break;
-    case PaHostApiTypeId::paWDMKS:
-    case PaHostApiTypeId::paWASAPI:
-    case PaHostApiTypeId::paMME:
-      icon = &iconWdmAudio;
-      break;
-    case PaHostApiTypeId::paJACK:
-      icon = &iconAsioAudio;
-      break;
-    default:
-      break;
+    if(device.isSystemDefaultInputDevice()) {
+        std::cout << "[ Default Input";
+        defaultDisplayed = true;
+    } else if(device.isHostApiDefaultInputDevice()) {
+        std::cout << "[ Default " << device.hostApi().name() << " Input";
+        defaultDisplayed = true;
     }
 
-    ui->comboBoxSoundDevices->addItem(*icon, devStr, device.index());
-    qDebug() << "Device Name: " << devStr;
-    qDebug() << "Device Id: " << device.index();
-  }
-  // Print device info:
-  std::cout << "Name                        = " << device.name() << std::endl;
-  std::cout << "Host API                    = " << device.hostApi().name() << std::endl;
-  std::cout << "Max inputs = " << device.maxInputChannels() << ", Max outputs = " << device.maxOutputChannels() << std::endl;
+    if(device.isSystemDefaultOutputDevice()) {
+        std::cout << (defaultDisplayed ? "," : "[");
+        std::cout << " Default Output";
+        defaultDisplayed = true;
+    } else if(device.isHostApiDefaultOutputDevice()) {
+        std::cout << (defaultDisplayed ? "," : "[");
+        std::cout << " Default " << device.hostApi().name() << " Output";
+        defaultDisplayed = true;
+    }
 
-  std::cout << "Default low input latency   = " << device.defaultLowInputLatency() << std::endl; // 8.3
-  std::cout << "Default low output latency  = " << device.defaultLowOutputLatency() << std::endl; // 8.3
-  std::cout << "Default high input latency  = " << device.defaultHighInputLatency() << std::endl; // 8.3
-  std::cout << "Default high output latency = " << device.defaultHighOutputLatency() << std::endl; // 8.3
+    if(defaultDisplayed)
+        std::cout << " ]" << std::endl;
+    if(!device.isInputOnlyDevice()) {
+        QString devStr = QString("%1 - %2").arg(device.hostApi().name(), device.name());
+        if(device.isSystemDefaultOutputDevice() || device.isHostApiDefaultOutputDevice())
+            devStr += " (Default)";
+        switch(device.hostApi().typeId()) {
+            case PaHostApiTypeId::paALSA:
+                icon = &iconAlsaAudio;
+                break;
+            case PaHostApiTypeId::paOSS:
+                icon = &iconOssAudio;
+                break;
+            case PaHostApiTypeId::paCoreAudio:
+                icon = &iconCoreAudio;
+                break;
+            case PaHostApiTypeId::paDirectSound:
+                icon = &iconDirectXAudio;
+                break;
+            case PaHostApiTypeId::paWDMKS:
+            case PaHostApiTypeId::paWASAPI:
+            case PaHostApiTypeId::paMME:
+                icon = &iconWdmAudio;
+                break;
+            case PaHostApiTypeId::paJACK:
+                icon = &iconAsioAudio;
+                break;
+            default:
+                break;
+        }
+
+        ui->comboBoxSoundDevices->addItem(*icon, devStr, device.index());
+        qDebug() << "Device Name: " << devStr;
+        qDebug() << "Device Id: " << device.index();
+    }
+    // Print device info:
+    std::cout << "Name                        = " << device.name() << std::endl;
+    std::cout << "Host API                    = " << device.hostApi().name() << std::endl;
+    std::cout << "Max inputs = " << device.maxInputChannels() << ", Max outputs = " << device.maxOutputChannels() << std::endl;
+
+    std::cout << "Default low input latency   = " << device.defaultLowInputLatency() << std::endl;   // 8.3
+    std::cout << "Default low output latency  = " << device.defaultLowOutputLatency() << std::endl;  // 8.3
+    std::cout << "Default high input latency  = " << device.defaultHighInputLatency() << std::endl;  // 8.3
+    std::cout << "Default high output latency = " << device.defaultHighOutputLatency() << std::endl; // 8.3
 }
 
 void MainWindow::initAudioInterfaceList() {
-  portaudio::System &sys = portaudio::System::instance();
+    portaudio::System& sys = portaudio::System::instance();
 
-  try {
-    addDeviceToDeviceList(sys.defaultOutputDevice());
+    try {
+        addDeviceToDeviceList(sys.defaultOutputDevice());
 
-    for (portaudio::System::DeviceIterator device = sys.devicesBegin();
-         device != sys.devicesEnd(); ++device) {
-      if (device->isSystemDefaultOutputDevice() || device->isInputOnlyDevice())
-        continue;
-      addDeviceToDeviceList(*device);
+        for(portaudio::System::DeviceIterator device = sys.devicesBegin();
+            device != sys.devicesEnd(); ++device) {
+            if(device->isSystemDefaultOutputDevice() || device->isInputOnlyDevice())
+                continue;
+            addDeviceToDeviceList(*device);
+        }
+    } catch(const portaudio::PaException& e) {
+        std::cout << "A PortAudio error occured: " << e.paErrorText() << std::endl;
+    } catch(const portaudio::PaCppException& e) {
+        std::cout << "A PortAudioCpp error occured: " << e.what() << std::endl;
+    } catch(const std::exception& e) {
+        std::cout << "A generic exception occured: " << e.what() << std::endl;
+    } catch(...) {
+        std::cout << "An unknown exception occured." << std::endl;
     }
-  } catch (const portaudio::PaException &e) {
-    std::cout << "A PortAudio error occured: " << e.paErrorText() << std::endl;
-  } catch (const portaudio::PaCppException &e) {
-    std::cout << "A PortAudioCpp error occured: " << e.what() << std::endl;
-  } catch (const std::exception &e) {
-    std::cout << "A generic exception occured: " << e.what() << std::endl;
-  } catch (...) {
-    std::cout << "An unknown exception occured." << std::endl;
-  }
 }
 void MainWindow::initBitDepthValues() {
     ui->bitDepths->setItemData(0, QVariant(8));
@@ -275,22 +274,41 @@ void MainWindow::initSamplingFrequencyValues() {
     ui->samplingFrequencies->setItemData(6, QVariant(192000));
 }
 void MainWindow::initAudio() {
-  // Set up the parameters required to open a (Callback)Stream:
-  portaudio::System & portAudioSys = portaudio::System::instance();
-  portaudio::DirectionSpecificStreamParameters outParams(portAudioSys.defaultOutputDevice(), 2, portaudio::FLOAT32, false, portAudioSys.defaultOutputDevice().defaultLowOutputLatency(), nullptr);
-  portaudio::StreamParameters params(portaudio::DirectionSpecificStreamParameters::null(), outParams, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff);
+    // Set up the parameters required to open a (Callback)Stream:
+    portaudio::System& portAudioSys = portaudio::System::instance();
+    portaudio::DirectionSpecificStreamParameters outParams(portAudioSys.defaultOutputDevice(), 2, portaudio::FLOAT32, false, portAudioSys.defaultOutputDevice().defaultLowOutputLatency(), nullptr);
+    portaudio::StreamParameters params(portaudio::DirectionSpecificStreamParameters::null(), outParams, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff);
 
-  //portaudio::MemFunCallbackStream<SineGenerator> stream(params, sineGenerator, &SineGenerator::generate);
-  stream.open(params, sineGenerator, &SineGenerator::read);
+    // portaudio::MemFunCallbackStream<SineGenerator> stream(params, sineGenerator, &SineGenerator::generate);
+    stream.open(params, *this, &MainWindow::read);
+    // stream.open(params, sineGenerator, &SineGenerator::read);
 }
 void MainWindow::on_startOrStopSineSweepAnalysisButton_clicked() {
-  if(sineSweepAnalysisStarted) {
-    ui->startOrStopSineSweepAnalysisButton->setText("Start Analysis");
-    stream.stop();
-  }
-  else {
-    ui->startOrStopSineSweepAnalysisButton->setText("Stop Analysis");
-    stream.start();
-  }
-  sineSweepAnalysisStarted = !sineSweepAnalysisStarted;
+    if(sineSweepAnalysisStarted) {
+        ui->startOrStopSineSweepAnalysisButton->setText("Start Analysis");
+        if(ui->soundOutputCheckBox->isChecked())
+            stream.stop();
+    } else {
+        ui->startOrStopSineSweepAnalysisButton->setText("Stop Analysis");
+        if(ui->soundOutputCheckBox->isChecked())
+            stream.start();
+    }
+    sineSweepAnalysisStarted = !sineSweepAnalysisStarted;
+}
+
+int MainWindow::read(const void* inputBuffer, void* outputBuffer,
+                     unsigned long framesPerBuffer,
+                     const PaStreamCallbackTimeInfo* timeInfo,
+                     PaStreamCallbackFlags statusFlags) {
+    float** out = static_cast<float**>(outputBuffer);
+    return sineGenerator.generateStereo(out, framesPerBuffer, false);
+}
+void MainWindow::on_soundOutputCheckBox_checkStateChanged(const Qt::CheckState& checkState) {
+    if(checkState == Qt::Checked) {
+        if(sineSweepAnalysisStarted)
+            stream.start();
+    } else {
+        if(sineSweepAnalysisStarted)
+            stream.stop();
+    }
 }

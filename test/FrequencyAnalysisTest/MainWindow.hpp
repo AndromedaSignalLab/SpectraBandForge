@@ -41,6 +41,8 @@ private slots:
 
     void on_startOrStopSineSweepAnalysisButton_clicked();
 
+    void on_soundOutputCheckBox_checkStateChanged(const Qt::CheckState &arg1);
+
   private:
     Ui::MainWindow *ui;
     void initAnalysisModeComboBox();
@@ -63,6 +65,8 @@ private slots:
     QIcon iconJackAudio;
     QIcon emptyIcon;
     SineGenerator sineGenerator;
-    portaudio::MemFunCallbackStream<SineGenerator> stream;
+    portaudio::MemFunCallbackStream<MainWindow> stream;
     bool sineSweepAnalysisStarted = false;
+    int read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
+    void analyzeSineSweep();
 };
