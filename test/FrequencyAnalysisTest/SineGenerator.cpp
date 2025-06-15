@@ -17,6 +17,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 SineGenerator::SineGenerator(const int sineTableSize) {
     this->sineTableSize = sineTableSize;
     this->phase = 0;
+    updateCurrentVariables();
     sineTable.resize(sineTableSize);
     setGain(0.125f);
     for(int i = 0; i < sineTableSize; ++i) {
@@ -25,9 +26,15 @@ SineGenerator::SineGenerator(const int sineTableSize) {
     }
 }
 
+void SineGenerator::updateCurrentVariables() {
+    tableIndexIncrement = (frequency * sineTableSize) / sampleRate;
+    phaseIncrement = twoPi * frequency / sampleRate;
+}
+
 void SineGenerator::setFrequency(const double freq) {
     soundDataMutex.lock();
     frequency = freq;
+    updateCurrentVariables();
     soundDataMutex.unlock();
 }
 
@@ -38,6 +45,7 @@ double SineGenerator::getFrequency() const {
 void SineGenerator::setSampleRate(const double sampleRate) {
     soundDataMutex.lock();
     this->sampleRate = sampleRate;
+    updateCurrentVariables();
     soundDataMutex.unlock();
 }
 
@@ -85,33 +93,22 @@ int SineGenerator::generate(float* outputBuffer, unsigned long size,
 int SineGenerator::generateStereo(float** outputBuffer, unsigned long size,
                                   bool addToPreviousWave) {
     assert(outputBuffer != nullptr);
-    phaseIncrement = twoPi * frequency / sampleRate;
-    float sample;
-
-    if(!useTable) {
-        soundDataMutex.lock();
-        for (unsigned int i = 0; i < size; ++i) {
-            sample = std::sin(phase) * gain;
-            outputBuffer[0][i] = sample;
-            outputBuffer[1][i] = sample;
-            phase += phaseIncrement;
+    float sampleAmplitude;
+    std::lock_guard<std::mutex> lock(soundDataMutex);
+    for (unsigned int i = 0; i < size; ++i) {
+        sampleAmplitude = useTable ? sineTable[phase] : std::sin(phase);
+        sampleAmplitude *= gain;
+        outputBuffer[0][i] = sampleAmplitude;
+        outputBuffer[1][i] = sampleAmplitude;
+        phase += useTable ? tableIndexIncrement : phaseIncrement;
+        if(useTable) {
+            if(phase >= sineTableSize)
+                phase -= sineTableSize;
+        } else {
             if (phase >= twoPi)
                 phase -= twoPi;
         }
-        soundDataMutex.unlock();
     }
-    else {
-        phaseIncrement = (frequency * sineTableSize) / sampleRate;
-        soundDataMutex.lock();
-        for(unsigned int i = 0; i < size; ++i) {
-            sample = sineTable[phase] * gain;
-            outputBuffer[0][i] = sample;
-            outputBuffer[1][i] = sample;
-            phase += phaseIncrement;
-            if(phase >= sineTableSize)
-                phase -= sineTableSize;
-        }
-        soundDataMutex.unlock();
-    }
+
     return paContinue;
 }

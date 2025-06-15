@@ -37,10 +37,12 @@ class SineGenerator {
     int sineTableSize;
     double phase;
     double phaseIncrement;
+    double tableIndexIncrement;
     double frequency = 440.0;
     double sampleRate = 44100.0;
     double gain;
     double volume;
     static constexpr double twoPi = std::numbers::pi * 2.0;
-    bool useTable = true;
+    bool useTable = false;
+    void updateCurrentVariables();
 };
