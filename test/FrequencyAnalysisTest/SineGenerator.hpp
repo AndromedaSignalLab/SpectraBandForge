@@ -11,7 +11,6 @@ You should have received a copy of the GNU Lesser General Public License along w
 #pragma once
 #include <mutex>
 #include <numbers>
-#include <portaudiocpp/PortAudioCpp.hxx>
 #include <vector>
 
 // SineGenerator class:
