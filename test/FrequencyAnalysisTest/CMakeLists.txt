@@ -30,12 +30,14 @@ find_package(Boost REQUIRED)
 find_package(PortAudio REQUIRED)
 find_package(PortAudioCPP REQUIRED)
 find_package(LibSamplerate REQUIRED)
+find_package(IIR REQUIRED)
 
 include_directories(../../src)
 include_directories(../../../AndromedaCommon/src)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
 include_directories(${PORTAUDIOCPP_INCLUDE_DIRS})
+include_directories(${IIR_INCLUDE_DIR})
 
 file(GLOB SpectraBandForgeSrc
     "../src/*.hpp"
@@ -106,6 +108,7 @@ target_link_libraries(FrequencyAnalysisTest PRIVATE
         ${PORTAUDIO_LIBRARIES}
         ${PORTAUDIOCPP_LIBRARIES}
         ${LIBSAMPLERATE_LIBRARY}
+        ${IIR_LIBRARY}
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
