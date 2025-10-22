@@ -82,22 +82,6 @@ else()
                 SineSweeper.hpp
                 TestClass.cpp
                 TestClass.hpp
-                Deneme.cpp
-                Deneme.hpp
-                Deneme.cpp
-                Deneme.hpp
-                Deneme.cpp
-                Deneme.hpp
-                Deneme.cpp
-                Deneme.hpp
-                Deneme.cpp
-                Deneme.hpp
-                Deneme.cpp
-                Deneme.hpp
-                Deneme.cpp
-                Deneme.hpp
-                Deneme.cpp
-                Deneme.hpp
         )
     endif()
 endif()
