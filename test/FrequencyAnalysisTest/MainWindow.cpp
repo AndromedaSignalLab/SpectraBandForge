@@ -286,11 +286,11 @@ void MainWindow::initAudio() {
 void MainWindow::on_startOrStopSineSweepAnalysisButton_clicked() {
     if(sineSweepAnalysisStarted) {
         ui->startOrStopSineSweepAnalysisButton->setText("Start Analysis");
-        if(ui->volumeSlider->value() == 0)
+        if(globalVolumeLevel != 0 && stream.isActive())
             stream.stop();
     } else {
         ui->startOrStopSineSweepAnalysisButton->setText("Stop Analysis");
-        if(ui->volumeSlider->value() != 0)
+        if(globalVolumeLevel != 0 && stream.isStopped())
             stream.start();
     }
     sineSweepAnalysisStarted = !sineSweepAnalysisStarted;
