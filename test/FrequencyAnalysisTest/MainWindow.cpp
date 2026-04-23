@@ -286,11 +286,11 @@ void MainWindow::initAudio() {
 void MainWindow::on_startOrStopSineSweepAnalysisButton_clicked() {
     if(sineSweepAnalysisStarted) {
         ui->startOrStopSineSweepAnalysisButton->setText("Start Analysis");
-        if(ui->soundOutputCheckBox->isChecked())
+        if(ui->volumeSlider->value() == 0)
             stream.stop();
     } else {
         ui->startOrStopSineSweepAnalysisButton->setText("Stop Analysis");
-        if(ui->soundOutputCheckBox->isChecked())
+        if(ui->volumeSlider->value() != 0)
             stream.start();
     }
     sineSweepAnalysisStarted = !sineSweepAnalysisStarted;
@@ -301,14 +301,38 @@ int MainWindow::read(const void* inputBuffer, void* outputBuffer,
                      const PaStreamCallbackTimeInfo* timeInfo,
                      PaStreamCallbackFlags statusFlags) {
     float** out = static_cast<float**>(outputBuffer);
-    return sineGenerator.generateStereo(out, framesPerBuffer, false);
-}
-void MainWindow::on_soundOutputCheckBox_checkStateChanged(const Qt::CheckState& checkState) {
-    if(checkState == Qt::Checked) {
-        if(sineSweepAnalysisStarted)
-            stream.start();
-    } else {
-        if(sineSweepAnalysisStarted)
-            stream.stop();
+    int returnValue = sineGenerator.generateStereo(out, framesPerBuffer, false);
+    if(globalVolumeLevel != 1.00) {
+        for(int i = 0; i < framesPerBuffer; i++) {
+            out[0][i] *= globalVolumeLevel;
+            out[1][i] *= globalVolumeLevel;
+        }
     }
+    return returnValue;
+}
+
+void MainWindow::on_soundOutputButton_clicked()
+{
+    ui->volumeSlider->setValue(0);
+}
+
+
+void MainWindow::on_volumeSlider_valueChanged(int value)
+{
+    globalVolumeLevel = double(value)/100;
+    if(value != 0 && sineSweepAnalysisStarted && !stream.isActive()){
+        stream.start();
+    }
+    else if(value == 0 && stream.isActive()){
+        stream.stop();
+    }
+
+    if(value == 0)
+        ui->soundOutputButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeMuted));
+    else if(value < 35)
+        ui->soundOutputButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeLow));
+    else if(value < 80)
+        ui->soundOutputButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeMedium));
+    else
+        ui->soundOutputButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeHigh));
 }

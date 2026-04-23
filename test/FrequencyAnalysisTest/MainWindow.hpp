@@ -41,7 +41,9 @@ private slots:
 
     void on_startOrStopSineSweepAnalysisButton_clicked();
 
-    void on_soundOutputCheckBox_checkStateChanged(const Qt::CheckState &arg1);
+    void on_soundOutputButton_clicked();
+
+    void on_volumeSlider_valueChanged(int value);
 
   private:
     Ui::MainWindow *ui;
@@ -69,4 +71,5 @@ private slots:
     bool sineSweepAnalysisStarted = false;
     int read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
     void analyzeSineSweep();
+    double globalVolumeLevel = 0.75;
 };
