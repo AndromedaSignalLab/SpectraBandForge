@@ -13,8 +13,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include <cstddef>
 #include <cmath>
 #include "BandDefinitions.hpp"
-#include "MathUtil.hpp"
-#include "SearchUtil.hpp"
+#include <MathUtil.hpp>
+#include <SearchUtil.hpp>
 #include <boost/numeric/interval.hpp>
 
 using namespace boost::numeric;
