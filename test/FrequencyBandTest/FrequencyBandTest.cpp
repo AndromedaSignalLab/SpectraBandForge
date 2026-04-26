@@ -13,8 +13,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include "../src/BandFilter.hpp"
 #include "FrequencyCalculator.hpp"
 #include "BandDefinitions.hpp"
-#include <ranges>
-#include "AndromedaDSP.hpp"
+#include <MathUtil.hpp>
 
 //31 Band:
 //20    31.5   50   80    125   200   315   500   800   1.25k   2k   3.15k   5k   8k    12.5k   20k
@@ -29,17 +28,17 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 void printOctaveBands(size_t nthOctave){
     std::vector<OctaveBand<double>> octaveBands;
-    octaveBands = BandFilter<double>::calculateOctaveBands(OctaveBandBase::Base10, nthOctave);
+    octaveBands = BandFilter<double>::calculateOctaveBands(nthOctave);
     std::cout<<octaveBands.size()<<" frequencies"<<std::endl;
 
     for(OctaveBand<double> &o:octaveBands) {
-        std::cout <<"Index X: "<<o.indexX<<" Nominal Freq: "<< o.nominalMidBandFrequency <<" Exact Freq: "<<o.midBandFrequency<< " Upper Freq: " << o.upperEdgeBandFrequency << " Lower Freq:" << o.lowerEdgeBandFrequency << std::endl;
+        std::cout <<"Index X: "<<o.indexX<<" Nominal Freq: "<< o.nominalMidBandFrequency <<" Exact Freq: "<<o.exactMidBandFrequency<< " Upper Freq: " << o.upperEdgeBandFrequency << " Lower Freq:" << o.lowerEdgeBandFrequency << std::endl;
     }
 
 }
 void printSpectrumAnalyzerBands(size_t nthOctave){
     std::vector<OctaveBand<double>> octaveBands;
-    octaveBands = BandFilter<double>::calculateOctaveBands(OctaveBandBase::Base10, nthOctave);
+    octaveBands = BandFilter<double>::calculateOctaveBands(nthOctave);
     std::cout<<octaveBands.size()<<" frequencies"<<std::endl;
 
     SpectrumAnalyzerBands<double> spectrumAnalyzerBands(octaveBands);
@@ -88,7 +87,7 @@ void testXIntervals(size_t b) {
 }
 
 void testRoundBy() {
-    std::cout << std::endl <<AndromedaDSP::MathUtil::roundBy(156.256, 5) << std::endl;
+    std::cout << std::endl <<AndromedaSignalLab::MathUtil::roundBy(156.256, 5) << std::endl;
 }
 
 void testNominalFrequency(size_t b) {
