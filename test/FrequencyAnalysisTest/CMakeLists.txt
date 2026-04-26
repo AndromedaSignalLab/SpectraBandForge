@@ -18,7 +18,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
+set(COMPONENTS_ROOT_PATH ${PROJECT_SOURCE_DIR}/../../..)
+set(CMAKE_MODULE_PATH ${COMPONENTS_ROOT_PATH}/Common/CMakeModules)
 
 if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
@@ -33,7 +34,7 @@ find_package(LibSamplerate REQUIRED)
 find_package(IIR REQUIRED)
 
 include_directories(../../src)
-include_directories(../../../AndromedaCommon/src)
+include_directories(${COMPONENTS_ROOT_PATH}/AndromedaCommon/src)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
 include_directories(${PORTAUDIOCPP_INCLUDE_DIRS})
@@ -45,8 +46,8 @@ file(GLOB SpectraBandForgeSrc
 )
 
 file(GLOB AndromedaCommonSrc
-        "../../../AndromedaCommon/src/*.hpp"
-        "../../../AndromedaCommon/src/*.cpp"
+        "${COMPONENTS_ROOT_PATH}/AndromedaCommon/src/*.hpp"
+        "${COMPONENTS_ROOT_PATH}/AndromedaCommon/src/*.cpp"
 )
 
 file(GLOB FrequencyAnalysisTestSrc

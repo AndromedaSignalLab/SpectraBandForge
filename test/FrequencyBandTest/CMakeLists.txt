@@ -11,6 +11,13 @@ cmake_minimum_required(VERSION 3.16)
 project("SpectraBandForge Test")
 
 set(CMAKE_CXX_STANDARD 20)
+set(COMPONENTS_ROOT_PATH ${PROJECT_SOURCE_DIR}/../../..)
+set(CMAKE_MODULE_PATH ${COMPONENTS_ROOT_PATH}/Common/CMakeModules)
+
+# Required for finding Boost without CMake find module (CMP0167)
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+endif()
 
 #Boost Definitions
 set(Boost_USE_STATIC_LIBS OFF)
@@ -23,10 +30,10 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-include_directories(../../AndromedaDSP/src)
+include_directories(../../src)
+include_directories(${COMPONENTS_ROOT_PATH}/AndromedaDSP/src)
+include_directories(${COMPONENTS_ROOT_PATH}/AndromedaCommon/src)
 include_directories(${Boost_INCLUDE_DIRS})
-
-include_directories(../src)
 
 file(GLOB SpectraBandForgeTest
     "../test/*.hpp"
@@ -43,10 +50,10 @@ file(GLOB AndromedaDSPSrc
     "../../AndromedaDSP/src/*.cpp"
 )
 
-
 add_executable(SpectraBandForgeTest
     ${SpectraBandForgeTest}
     ${SpectraBandForgeSrc}
     ${AndromedaDSPSrc}
     ${Boost_LIBRARIES}
+        FrequencyBandTest.cpp
 )

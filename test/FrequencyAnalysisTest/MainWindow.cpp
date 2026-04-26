@@ -11,6 +11,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 #include "MainWindow.hpp"
 #include "BandFilter.hpp"
+#include <MathUtil.hpp>
 
 #include <iostream>
 
@@ -97,6 +98,7 @@ void MainWindow::on_frequencySlider_valueChanged(int value) {
     double width = ui->frequencySlider->maximum() - ui->frequencySlider->minimum();
 
     double frequency = xToFrequency(value, f_min, f_max, width);
+
     sineGenerator.setFrequency(frequency);
     bool isKhz;
     frequency = beautifulFrequency(frequency, isKhz);
@@ -113,8 +115,7 @@ void MainWindow::on_sineSweepAmplitudeSlider_valueChanged(int value) {
     double volumeMaximum = 20.0;
     double maxValue = ui->sineSweepAmplitudeSlider->maximum();
     double minValue = ui->sineSweepAmplitudeSlider->minimum();
-    double width = maxValue - minValue;
-    double volume = volumeMinimum + ((double(value) - minValue) / (maxValue - minValue)) * (volumeMaximum - volumeMinimum);
+    double volume = AndromedaSignalLab::MathUtil::remapValue<double>(value, minValue, maxValue, volumeMinimum, volumeMaximum);
     sineGenerator.setVolume(volume);
     ui->sineSweepAmplitudeLabel->setText(QString::number(volume));
 }
