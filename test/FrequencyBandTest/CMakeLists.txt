@@ -12,7 +12,7 @@ project("SpectraBandForge Test")
 
 set(CMAKE_CXX_STANDARD 20)
 set(COMPONENTS_ROOT_PATH ${PROJECT_SOURCE_DIR}/../../..)
-set(CMAKE_MODULE_PATH ${COMPONENTS_ROOT_PATH}/Common/CMakeModules)
+set(CMAKE_MODULE_PATH ${COMPONENTS_ROOT_PATH}/AndromedaCommon/CMakeModules)
 
 # Required for finding Boost without CMake find module (CMP0167)
 if(POLICY CMP0167)
