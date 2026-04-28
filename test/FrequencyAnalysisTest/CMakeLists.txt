@@ -18,6 +18,23 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+enable_language(C)
+
+#Boost Definitions
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
+    set(OpenMPT_USE_STATIC_LIBS false)
+    set(FFTW_USE_STATIC_LIBS true)
+    #set(BOOST_USE_STATIC_LIBS true)
+    #set(FFTW_USE_STATIC_LIBS true)
+    set(PortAudio_USE_STATIC_LIBS true)
+    set(PortAudioCPP_USE_STATIC_LIBS true)
+endif(APPLE)
+
 set(COMPONENTS_ROOT_PATH ${PROJECT_SOURCE_DIR}/../../..)
 set(CMAKE_MODULE_PATH ${COMPONENTS_ROOT_PATH}/AndromedaCommon/CMakeModules)
 
@@ -31,23 +48,45 @@ find_package(Boost REQUIRED)
 find_package(PortAudio REQUIRED)
 find_package(PortAudioCPP REQUIRED)
 find_package(LibSamplerate REQUIRED)
+find_package(FFTW REQUIRED COMPONENTS
+        DOUBLE_LIB
+        FLOAT_LIB
+        DOUBLE_THREADS_LIB
+        FLOAT_THREADS_LIB
+)
 find_package(IIR REQUIRED)
+find_package(spdlog REQUIRED)
 
 include_directories(../../src)
 include_directories(${COMPONENTS_ROOT_PATH}/AndromedaCommon/src)
+include_directories(${COMPONENTS_ROOT_PATH}/AndromedaDSP/src)
+include_directories(${COMPONENTS_ROOT_PATH}/KissFFT)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PORTAUDIO_INCLUDE_DIRS})
 include_directories(${PORTAUDIOCPP_INCLUDE_DIRS})
+include_directories(${FFTW_INCLUDES})
 include_directories(${IIR_INCLUDE_DIR})
 
 file(GLOB SpectraBandForgeSrc
-    "../src/*.hpp"
-    "../src/*.cpp"
+    "../../src/*.hpp"
+    "../../src/*.cpp"
+    "../../src/Implementations/FFT/*.hpp"
+    "../../src/Implementations/FFT/*.cpp"
 )
 
 file(GLOB AndromedaCommonSrc
         "${COMPONENTS_ROOT_PATH}/AndromedaCommon/src/*.hpp"
         "${COMPONENTS_ROOT_PATH}/AndromedaCommon/src/*.cpp"
+)
+
+file(GLOB AndromedaDspSrc
+        "${COMPONENTS_ROOT_PATH}/AndromedaDSP/src/*.cpp"
+        "${COMPONENTS_ROOT_PATH}/AndromedaDSP/src/*.hpp"
+)
+
+file(GLOB KissFFTSrc
+        "${COMPONENTS_ROOT_PATH}/KissFFT/*.c"
+        "${COMPONENTS_ROOT_PATH}/KissFFT/*.h"
 )
 
 file(GLOB FrequencyAnalysisTestSrc
@@ -62,6 +101,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${FrequencyAnalysisTestSrc}
         ${SpectraBandForgeSrc}
+        ${AndromedaCommonSrc}
+        ${AndromedaDspSrc}
+        ${KissFFTSrc}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FrequencyAnalysisTest APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -79,12 +121,16 @@ else()
         add_executable(FrequencyAnalysisTest
             ${FrequencyAnalysisTestSrc}
             ${SpectraBandForgeSrc}
-                SineSweeper.cpp
-                SineSweeper.hpp
-                TestClass.cpp
-                TestClass.hpp
         )
     endif()
+endif()
+
+find_library(FFTW3_LIB NAMES fftw3)
+find_library(FFTW3F_LIB NAMES fftw3f)
+find_library(FFTW3L_LIB fftw3l)
+
+if(NOT FFTW3_LIB OR NOT FFTW3F_LIB)
+    message(FATAL_ERROR "FFTW not found")
 endif()
 
 target_link_libraries(FrequencyAnalysisTest PRIVATE
@@ -93,7 +139,11 @@ target_link_libraries(FrequencyAnalysisTest PRIVATE
         ${PORTAUDIO_LIBRARIES}
         ${PORTAUDIOCPP_LIBRARIES}
         ${LIBSAMPLERATE_LIBRARY}
+        ${FFTW3_LIB}
+        ${FFTW3F_LIB}
+        ${FFTW3L_LIB}
         ${IIR_LIBRARY}
+        spdlog::spdlog
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
