@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 // SineGenerator class:
 class SineGenerator {
   public:
-    SineGenerator(const int sineTableSize = 32768);
+     SineGenerator(std::timed_mutex &soundDataMutex, const int sineTableSize = 32768);
 
     int generate(float* outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
     int generateStereo(float** outputBuffer, const unsigned long size, const bool addToPreviousWave = false);
@@ -31,7 +31,7 @@ class SineGenerator {
     double getGain() const;
 
   private:
-    std::mutex soundDataMutex;
+    std::timed_mutex &soundDataMutex;
     std::vector<float> sineTable;
     int sineTableSize;
     double phase;

@@ -14,6 +14,9 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include <vector>
 #include "BandDefinitions.hpp"
 #include "FrequencyCalculator.hpp"
+#include <limits>
+
+constexpr int InvalidBandIndex = std::numeric_limits<int>::min();
 
 #define REAL 0
 #define IMAG 1
@@ -238,10 +241,20 @@ class SpectrumAnalyzerBands {
         void getAmplitudes(T * amplitudes);
         void getAmplitudes(T * amplitudes, size_t beginningIndex);
         void getAmplitudes(T * amplitudes, size_t beginningIndex, size_t endingIndex);
+        int getIndexXbyFrequency(const T frequency);
     private:
         void init();
         std::vector<SpectrumAnalyzerBandDTO<T>> spectrumAnalyzerBands;
 };
+
+template<typename T>
+int SpectrumAnalyzerBands<T>::getIndexXbyFrequency(const T frequency) {
+    for(SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
+        if(frequency >= spectrumAnalyzerBand.bandInfo.lowerEdgeBandFrequency && frequency < spectrumAnalyzerBand.bandInfo.upperEdgeBandFrequency)
+            return spectrumAnalyzerBand.bandInfo.indexX;
+    }
+    return InvalidBandIndex;
+}
 
 template<typename T>
 SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::operator[](const int indexX) {

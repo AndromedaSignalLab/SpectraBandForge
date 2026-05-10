@@ -13,7 +13,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include <cmath>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
-SineGenerator::SineGenerator(const int sineTableSize) : sineTableSize(sineTableSize), phase(0.0) {
+SineGenerator::SineGenerator(std::timed_mutex &soundDataMutex, const int sineTableSize) : sineTableSize(sineTableSize), phase(0.0), soundDataMutex(soundDataMutex)  {
     updateCurrentVariables();
     sineTable.resize(sineTableSize);
     setGain(0.125f);
@@ -51,9 +51,10 @@ double SineGenerator::getSampleRate() const {
 }
 
 void SineGenerator::setVolume(const double volume) {
-    std::lock_guard<std::mutex> lock(soundDataMutex);
+    soundDataMutex.lock();
     this->volume = volume;
     gain = pow(10, volume / 20.0);
+    soundDataMutex.unlock();
 }
 
 double SineGenerator::getVolume() const {
@@ -61,9 +62,11 @@ double SineGenerator::getVolume() const {
 }
 
 void SineGenerator::setGain(const double gain) {
-    std::lock_guard<std::mutex> lock(soundDataMutex);
+    soundDataMutex.lock();
+    //std::lock_guard<std::mutex> lock(soundDataMutex);
     this->gain = std::max(gain, 0.00001);
     volume = 20 * log10(this->gain);
+    soundDataMutex.unlock();
 }
 
 double SineGenerator::getGain() const {
@@ -74,7 +77,8 @@ int SineGenerator::generate(float* outputBuffer, unsigned long size,
                             bool addToPreviousWave) {
     assert(outputBuffer != nullptr);
     float sampleAmplitude;
-    std::lock_guard<std::mutex> lock(soundDataMutex);
+    //std::lock_guard<std::mutex> lock(soundDataMutex);
+    soundDataMutex.lock();
     for (unsigned int i = 0; i < size; ++i) {
         sampleAmplitude = useTable ? sineTable[static_cast<int>(phase)] : std::sin(phase);
         sampleAmplitude *= gain;
@@ -96,6 +100,7 @@ int SineGenerator::generate(float* outputBuffer, unsigned long size,
         }
     }
 
+    soundDataMutex.unlock();
     return paContinue;
 }
 
@@ -103,7 +108,8 @@ int SineGenerator::generateStereo(float** outputBuffer, unsigned long size,
                                   bool addToPreviousWave) {
     assert(outputBuffer != nullptr);
     float sampleAmplitude;
-    std::lock_guard<std::mutex> lock(soundDataMutex);
+    //std::lock_guard<std::mutex> lock(soundDataMutex);
+    soundDataMutex.lock();
     for (unsigned int i = 0; i < size; ++i) {
         sampleAmplitude = useTable ? sineTable[static_cast<int>(phase)] : std::sin(phase);
         sampleAmplitude *= gain;
@@ -124,6 +130,6 @@ int SineGenerator::generateStereo(float** outputBuffer, unsigned long size,
                 phase -= twoPi;
         }
     }
-
+    soundDataMutex.unlock();
     return paContinue;
 }

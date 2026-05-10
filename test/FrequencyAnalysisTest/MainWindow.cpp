@@ -18,10 +18,13 @@ You should have received a copy of the GNU Lesser General Public License along w
 #include "./ui_MainWindow.h"
 
 constexpr double SAMPLE_RATE = 44100.0;
-constexpr int FRAMES_PER_BUFFER = 2408;
+constexpr int FRAMES_PER_BUFFER = 2048;
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
+    spectrumData = new double[FRAMES_PER_BUFFER];
+    sineGenerator = new SineGenerator( soundDataMutex, FRAMES_PER_BUFFER);
+    spectrumAnalyzerDataProcessor = new SpectrumAnalyzerDataProcessor(bandDesignator, soundDataMutex,  FRAMES_PER_BUFFER, FRAMES_PER_BUFFER, soundResolution, WindowFunction::None);
     ui->setupUi(this);
     ui->listWidget->setCurrentRow(0);
     portaudio::System::initialize();
@@ -35,6 +38,10 @@ MainWindow::MainWindow(QWidget* parent)
     initAudio();
     ui->sineSweepAmplitudeSlider->setValue(400);
     ui->frequencySlider->setValue(317);
+    soundResolution.bitDepth = BitDepth::Bits16;
+    soundResolution.channelMode = ChannelMode::Stereo;
+    soundResolution.sampleDataFormat = SampleDataFormat::Float32;
+    soundResolution.sampleRate = SamplingFrequency::Hz44100;;
 }
 
 MainWindow::~MainWindow() {
@@ -99,7 +106,7 @@ void MainWindow::on_frequencySlider_valueChanged(int value) {
 
     double frequency = xToFrequency(value, f_min, f_max, width);
 
-    sineGenerator.setFrequency(frequency);
+    sineGenerator->setFrequency(frequency);
     bool isKhz;
     frequency = beautifulFrequency(frequency, isKhz);
     if(isKhz)
@@ -116,7 +123,7 @@ void MainWindow::on_sineSweepAmplitudeSlider_valueChanged(int value) {
     double maxValue = ui->sineSweepAmplitudeSlider->maximum();
     double minValue = ui->sineSweepAmplitudeSlider->minimum();
     double volume = AndromedaSignalLab::MathUtil::remapValue<double>(value, minValue, maxValue, volumeMinimum, volumeMaximum);
-    sineGenerator.setVolume(volume);
+    sineGenerator->setVolume(volume);
     ui->sineSweepAmplitudeLabel->setText(QString::number(volume));
 }
 
@@ -302,12 +309,15 @@ int MainWindow::read(const void* inputBuffer, void* outputBuffer,
                      const PaStreamCallbackTimeInfo* timeInfo,
                      PaStreamCallbackFlags statusFlags) {
     float** out = static_cast<float**>(outputBuffer);
-    int returnValue = sineGenerator.generateStereo(out, framesPerBuffer, false);
+    int returnValue = sineGenerator->generateStereo(out, framesPerBuffer, false);
     if(globalVolumeLevel != 1.00) {
+        soundDataMutex.lock();
         for(int i = 0; i < framesPerBuffer; i++) {
             out[0][i] *= globalVolumeLevel;
             out[1][i] *= globalVolumeLevel;
         }
+        soundDataMutex.unlock();
+        spectrumAnalyzerDataProcessor->calculateSpectrumData(framesPerBuffer, out[0], out[1], spectrumData);
     }
     return returnValue;
 }

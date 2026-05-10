@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License along with thi
 
 using namespace AndromedaSignalLab;
 
-SpectrumAnalyzerDataProcessor::SpectrumAnalyzerDataProcessor(std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction)
-    : QObject{nullptr}, soundDataMutex(soundDataMutex) {
-    initalize(bufferSize, framesPerBuffer, soundResolution, windowFunction);
+SpectrumAnalyzerDataProcessor::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction)
+    : QObject{nullptr}, soundDataMutex(soundDataMutex), bandDesignator(bandDesignator) {
     //fft = new KissFFTImpl<float>();
     fft = new FFTWImpl<float>();
+    initalize(bufferSize, framesPerBuffer, soundResolution, windowFunction);
 }
 
 SpectrumAnalyzerDataProcessor::~SpectrumAnalyzerDataProcessor() {
@@ -37,7 +37,7 @@ void SpectrumAnalyzerDataProcessor::initalize(const size_t bufferSize, const siz
     this->framesPerBuffer = framesPerBuffer;
     this->fftPrecision = framesPerBuffer;
     this->frequencySpacing = double(soundResolution.sampleRate)/fftPrecision;
-    std::vector<OctaveBand<double>> bands = BandFilter<double>::calculateOctaveBands(2);
+    std::vector<OctaveBand<double>> bands = BandFilter<double>::calculateOctaveBands(bandDesignator);
     spectrumAnalyzerBands = SpectrumAnalyzerBands<double>(bands);
     qDebug()<<"Spectrum analyzer bar amount is"<<spectrumAnalyzerBarAmount;
     //spectrumData->assign(spectrumAnalyzerBarAmount, 0);
@@ -72,7 +72,10 @@ void SpectrumAnalyzerDataProcessor::updateFFT(size_t inputDataCount, float *left
     for(int i=0; i<fftPrecision; i++) {
         magnitude = AndromedaDSP::AndromedaDSP<double>::calculateMagnitude(fft->fftOutput[i].real(), fft->fftOutput[i].imag());
         //qDebug()<<"magnitude: "<<magnitude;
-        SpectrumAnalyzerBandDTO<double> & spectrumAnalyzerBand = spectrumAnalyzerBands[i*frequencySpacing];
+        int indexX = spectrumAnalyzerBands.getIndexXbyFrequency(i*frequencySpacing);
+        if (indexX == InvalidBandIndex)
+            continue;
+        SpectrumAnalyzerBandDTO<double> & spectrumAnalyzerBand = spectrumAnalyzerBands[indexX];
         //if(spectrumAnalyzerBand.bandInfo.nominalMidBandFrequency >= 0 && !std::isnan(magnitude)){
         spectrumAnalyzerBand.addMagnitude(magnitude);
         //}

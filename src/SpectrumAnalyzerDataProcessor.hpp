@@ -21,13 +21,14 @@ class SpectrumAnalyzerDataProcessor : public QObject
 {
     Q_OBJECT
 public:
-    explicit SpectrumAnalyzerDataProcessor(std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction);
+    explicit SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction);
     ~SpectrumAnalyzerDataProcessor();
     void calculateSpectrumData(size_t readCount, float *leftSoundChannelData, float *rightSoundChannelData, double *spectrumData);
 private:
     double frequencySpacing = 0;
     int fftPrecision = 0;
     size_t spectrumAnalyzerBarAmount = 20;
+    const int bandDesignator = 0;
     SpectrumAnalyzerBands<double> spectrumAnalyzerBands;
     Interfaces::FFT<float> *fft = nullptr;
     SoundResolution soundResolution;

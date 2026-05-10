@@ -12,9 +12,11 @@ You should have received a copy of the GNU Lesser General Public License along w
 #pragma once
 
 #include "SineGenerator.hpp"
+#include <AndromedaStructures.hpp>
 
 #include <QMainWindow>
 #include <portaudiocpp/PortAudioCpp.hxx>
+#include "SpectrumAnalyzerDataProcessor.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -46,6 +48,9 @@ private slots:
     void on_volumeSlider_valueChanged(int value);
 
   private:
+    SoundResolution soundResolution;
+    SpectrumAnalyzerDataProcessor *spectrumAnalyzerDataProcessor;
+    std::timed_mutex soundDataMutex;
     Ui::MainWindow *ui;
     void initAnalysisModeComboBox();
     void updateAnalysisMode();
@@ -56,7 +61,7 @@ private slots:
     void initSamplingFrequencyValues();
     void initAudio();
     const QList<int> bandDesignators = {1, 2, 3, 4, 6, 8, 12, 24};
-    int bandDesignator = 0;
+    int bandDesignator = 2;
     int bandAmount = 0;
     QIcon iconCoreAudio;
     QIcon iconWdmAudio;
@@ -66,10 +71,11 @@ private slots:
     QIcon iconAsioAudio;
     QIcon iconJackAudio;
     QIcon emptyIcon;
-    SineGenerator sineGenerator;
+    SineGenerator *sineGenerator;
     portaudio::MemFunCallbackStream<MainWindow> stream;
     bool sineSweepAnalysisStarted = false;
     int read(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags);
     void analyzeSineSweep();
     double globalVolumeLevel = 0.75;
+    double * spectrumData = nullptr;
 };
