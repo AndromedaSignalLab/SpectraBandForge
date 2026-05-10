@@ -14,8 +14,6 @@ You should have received a copy of the GNU General Public License along with thi
 #include <AndromedaDSP.hpp>
 #include <QDebug>
 
-using namespace AndromedaSignalLab;
-
 SpectrumAnalyzerDataProcessor::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction)
     : QObject{nullptr}, soundDataMutex(soundDataMutex), bandDesignator(bandDesignator) {
     //fft = new KissFFTImpl<float>();

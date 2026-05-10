@@ -31,7 +31,7 @@ private:
     size_t spectrumAnalyzerBarAmount = 0;
     const int bandDesignator = 0;
     SpectrumAnalyzerBands<double> spectrumAnalyzerBands;
-    Interfaces::FFT<float> *fft = nullptr;
+    AndromedaSignalLab::Interfaces::FFT<float> *fft = nullptr;
     SoundResolution soundResolution;
     std::timed_mutex &soundDataMutex;
     float *windowMultipliers = nullptr;
