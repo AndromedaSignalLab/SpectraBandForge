@@ -45,6 +45,7 @@ enum class OctaveBandBase {
 template <class T>
 struct OctaveBand {
     int indexX;
+    int bandIndex;
     OctaveBandBase base = OctaveBandBase::Base10;
     T exactMidBandFrequency;
     T nominalMidBandFrequency;

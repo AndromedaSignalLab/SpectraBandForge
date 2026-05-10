@@ -32,6 +32,10 @@ SpectrumAnalyzerDataProcessor::~SpectrumAnalyzerDataProcessor() {
     fft = nullptr;
 }
 
+int SpectrumAnalyzerDataProcessor::getBarAmount() {
+    return spectrumAnalyzerBarAmount;
+}
+
 void SpectrumAnalyzerDataProcessor::initalize(const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction) {
     this->bufferSize = bufferSize;
     this->framesPerBuffer = framesPerBuffer;
@@ -39,6 +43,7 @@ void SpectrumAnalyzerDataProcessor::initalize(const size_t bufferSize, const siz
     this->frequencySpacing = double(soundResolution.sampleRate)/fftPrecision;
     std::vector<OctaveBand<double>> bands = BandFilter<double>::calculateOctaveBands(bandDesignator);
     spectrumAnalyzerBands = SpectrumAnalyzerBands<double>(bands);
+    spectrumAnalyzerBarAmount = bands.size();
     qDebug()<<"Spectrum analyzer bar amount is"<<spectrumAnalyzerBarAmount;
     //spectrumData->assign(spectrumAnalyzerBarAmount, 0);
 
@@ -72,7 +77,7 @@ void SpectrumAnalyzerDataProcessor::updateFFT(size_t inputDataCount, float *left
     for(int i=0; i<fftPrecision; i++) {
         magnitude = AndromedaDSP::AndromedaDSP<double>::calculateMagnitude(fft->fftOutput[i].real(), fft->fftOutput[i].imag());
         //qDebug()<<"magnitude: "<<magnitude;
-        int indexX = spectrumAnalyzerBands.getIndexXbyFrequency(i*frequencySpacing);
+        int indexX = spectrumAnalyzerBands.getIndexXByFrequencyBin(frequencySpacing+i, frequencySpacing);
         if (indexX == InvalidBandIndex)
             continue;
         SpectrumAnalyzerBandDTO<double> & spectrumAnalyzerBand = spectrumAnalyzerBands[indexX];
@@ -83,6 +88,9 @@ void SpectrumAnalyzerDataProcessor::updateFFT(size_t inputDataCount, float *left
         //    qDebug()<<"nan magnitude";
         //spectrumData[i] = AndromedaDSP<double>::calculateMagnitudeDb(fftOutput[i][REAL], fftOutput[i][IMAG]);
         //qDebug()<<"Max Magnitude: "<<maxMagnitude<<" FFT Output["<<i<<"] Real: "<<QString::number(fftOutput[i][REAL], 'g', 6) << "Imaginary: "<<fftOutput[i][IMAG]<<" Magnitude: "<<magnitude<<" DB: "<<magnitude_dB;
+    }
+    for (int i=0; i<spectrumAnalyzerBarAmount; i++) {
+        spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getMagnitude();
     }
 }
 

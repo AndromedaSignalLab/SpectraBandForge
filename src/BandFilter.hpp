@@ -146,6 +146,7 @@ template<class T> inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOcta
         fm = FrequencyCalculator::calculateExactMidBandFrequency(b, G, fr, x);
         fm10 = (base == OctaveBandBase::Base10) ? fm : FrequencyCalculator::calculateExactMidBandFrequency(b, G10, fr, x);
         octaveBand.indexX = x;
+        octaveBand.bandIndex = x - xBeginning;
         octaveBand.base = base;
         octaveBand.exactMidBandFrequency = fm;
         octaveBand.lowerEdgeBandFrequency = FrequencyCalculator::calculateLowerEdgeBandFrequency(b, G, fm);
@@ -241,28 +242,66 @@ class SpectrumAnalyzerBands {
         void getAmplitudes(T * amplitudes);
         void getAmplitudes(T * amplitudes, size_t beginningIndex);
         void getAmplitudes(T * amplitudes, size_t beginningIndex, size_t endingIndex);
-        int getIndexXbyFrequency(const T frequency);
+        int getIndexXByFrequencyBin(const T binCenterFrequency, const T binWidth) const;
+        SpectrumAnalyzerBandDTO<T> & getBandByIndexX(int indexX);
+        SpectrumAnalyzerBandDTO<T> & getBandByBandIndex(int bandIndex);
     private:
         void init();
         std::vector<SpectrumAnalyzerBandDTO<T>> spectrumAnalyzerBands;
 };
 
 template<typename T>
-int SpectrumAnalyzerBands<T>::getIndexXbyFrequency(const T frequency) {
+int SpectrumAnalyzerBands<T>::getIndexXByFrequencyBin(const T binCenterFrequency, const T binWidth) const {
+    const T binLower = binCenterFrequency - binWidth / T(2);
+    const T binUpper = binCenterFrequency + binWidth / T(2);
+
+    T bestOverlap = T(0);
+    int bestIndexX = InvalidBandIndex;
+
+    /*
     for(SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
         if(frequency >= spectrumAnalyzerBand.bandInfo.lowerEdgeBandFrequency && frequency < spectrumAnalyzerBand.bandInfo.upperEdgeBandFrequency)
             return spectrumAnalyzerBand.bandInfo.indexX;
     }
     return InvalidBandIndex;
+    */
+
+    for (const SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands) {
+        const T overlapLower = std::max(binLower, spectrumAnalyzerBand.bandInfo.lowerEdgeBandFrequency);
+        const T overlapUpper = std::min(binUpper, spectrumAnalyzerBand.bandInfo.upperEdgeBandFrequency);
+
+        if (overlapUpper <= overlapLower) {
+            continue;
+        }
+
+        const T overlap = overlapUpper - overlapLower;
+
+        if (overlap > bestOverlap) {
+            bestOverlap = overlap;
+            bestIndexX = spectrumAnalyzerBand.bandInfo.indexX;
+        }
+    }
+
+    return bestIndexX;
 }
 
 template<typename T>
-SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::operator[](const int indexX) {
+SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::getBandByBandIndex(const int bandIndex) {
+    return spectrumAnalyzerBands[bandIndex];
+}
+
+template<typename T>
+SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::getBandByIndexX(const int indexX) {
     for(SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
         if(spectrumAnalyzerBand.bandInfo.indexX == indexX)
             return spectrumAnalyzerBand;
     }
     throw std::exception();
+}
+
+template<typename T>
+SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::operator[](const int indexX) {
+    return getBandByIndexX(indexX);
 }
 
 template<typename T>
