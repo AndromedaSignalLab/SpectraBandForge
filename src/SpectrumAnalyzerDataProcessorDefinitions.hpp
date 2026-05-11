@@ -1,5 +1,5 @@
 /*
-SpectrumAnalyzerDataProcessor class declarations of ModPlug Player
+SpectrumAnalyzerDataProcessor class definitions of Andromeda Signal Lab
 Copyright (C) 2025 Volkan Orhan
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -8,20 +8,21 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
-#include "SpectrumAnalyzerDataProcessor.hpp"
 //#include "Implementation/FFT/KissFFTImpl.hpp"
 #include "Implementations/FFT/FFTWImpl.hpp"
 #include <AndromedaDSP.hpp>
 #include <QDebug>
 
-SpectrumAnalyzerDataProcessor::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction)
-    : QObject{nullptr}, soundDataMutex(soundDataMutex), bandDesignator(bandDesignator) {
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction)
+: soundDataMutex(soundDataMutex), bandDesignator(bandDesignator){
     //fft = new KissFFTImpl<float>();
-    fft = new FFTWImpl<float>();
+    fft = new FFTWImpl<FFTDataType>();
     initalize(bufferSize, framesPerBuffer, soundResolution, windowFunction);
 }
 
-SpectrumAnalyzerDataProcessor::~SpectrumAnalyzerDataProcessor() {
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::~SpectrumAnalyzerDataProcessor() {
     if(fft == nullptr)
         return;
     if(fft->isOpen())
@@ -30,17 +31,31 @@ SpectrumAnalyzerDataProcessor::~SpectrumAnalyzerDataProcessor() {
     fft = nullptr;
 }
 
-int SpectrumAnalyzerDataProcessor::getBarAmount() {
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+int SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::getBarAmount() {
     return spectrumAnalyzerBarAmount;
 }
 
-void SpectrumAnalyzerDataProcessor::initalize(const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction) {
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::calculateSpectrumData(
+    size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData,
+    SpectrumDataType *spectrumData) {
+    //if(playerState == PlayingState::Playing) {
+    updateFFT(inputDataCount, leftSoundChannelData, rightSoundChannelData, spectrumData);
+    this->spectrumAnalyzerBands.getAmplitudes(spectrumData, 0);
+    //}
+    //else
+    //    std::fill(spectrumData, spectrumData+20, 0);
+}
+
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::initalize(const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction) {
     this->bufferSize = bufferSize;
     this->framesPerBuffer = framesPerBuffer;
     this->fftPrecision = framesPerBuffer;
     this->frequencySpacing = double(soundResolution.sampleRate)/fftPrecision;
-    std::vector<OctaveBand<double>> bands = BandFilter<double>::calculateOctaveBands(bandDesignator);
-    spectrumAnalyzerBands = SpectrumAnalyzerBands<double>(bands);
+    std::vector<OctaveBand<SpectrumDataType>> bands = BandFilter<SpectrumDataType>::calculateOctaveBands(bandDesignator);
+    spectrumAnalyzerBands = SpectrumAnalyzerBands<SpectrumDataType>(bands);
     spectrumAnalyzerBarAmount = bands.size();
     qDebug()<<"Spectrum analyzer bar amount is"<<spectrumAnalyzerBarAmount;
     //spectrumData->assign(spectrumAnalyzerBarAmount, 0);
@@ -50,7 +65,8 @@ void SpectrumAnalyzerDataProcessor::initalize(const size_t bufferSize, const siz
     fft->initialize(framesPerBuffer);
 }
 
-void SpectrumAnalyzerDataProcessor::updateFFT(size_t inputDataCount, float *leftSoundChannelData, float *rightSoundChannelData, double *spectrumData) {
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::updateFFT(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData) {
     if(spectrumData == nullptr)
         return;
     double magnitude;
@@ -92,34 +108,26 @@ void SpectrumAnalyzerDataProcessor::updateFFT(size_t inputDataCount, float *left
     }
 }
 
-void SpectrumAnalyzerDataProcessor::calculateSpectrumData(size_t inputDataCount, float *leftSoundChannelData, float *rightSoundChannelData, double *spectrumData) {
-    //if(playerState == PlayingState::Playing) {
-        updateFFT(inputDataCount, leftSoundChannelData, rightSoundChannelData, spectrumData);
-        this->spectrumAnalyzerBands.getAmplitudes(spectrumData, 0);
-    //}
-    //else
-    //    std::fill(spectrumData, spectrumData+20, 0);
-}
-
-void SpectrumAnalyzerDataProcessor::setWindowFunction(const WindowFunction windowFunction) {
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::setWindowFunction(const WindowFunction windowFunction) {
     soundDataMutex.lock();
     this->windowFunction = windowFunction;
     if(windowMultipliers != nullptr) {
         delete[] windowMultipliers;
     }
     switch(windowFunction) {
-    case WindowFunction::None:
-        windowMultipliers = nullptr;
-        break;
-    case WindowFunction::HanningWindow:
-        windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hanningMultipliers(this->framesPerBuffer);
-        break;
-    case WindowFunction::HammingWindow:
-        windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hammingMultipliers(this->framesPerBuffer);
-        break;
-    case WindowFunction::BlackmanWindow:
-        windowMultipliers = AndromedaDSP::AndromedaDSP<float>::blackmanMultipliers(this->framesPerBuffer);
-        break;
+        case WindowFunction::None:
+            windowMultipliers = nullptr;
+            break;
+        case WindowFunction::HanningWindow:
+            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hanningMultipliers(this->framesPerBuffer);
+            break;
+        case WindowFunction::HammingWindow:
+            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hammingMultipliers(this->framesPerBuffer);
+            break;
+        case WindowFunction::BlackmanWindow:
+            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::blackmanMultipliers(this->framesPerBuffer);
+            break;
     }
     soundDataMutex.unlock();
     //emit MessageCenter::getInstance().events.spectrumAnalyzerEvents.windowFunctionChanged(windowFunction);

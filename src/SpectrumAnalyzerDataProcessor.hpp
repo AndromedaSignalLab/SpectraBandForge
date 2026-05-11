@@ -1,5 +1,5 @@
 /*
-SpectrumAnalyzerDataProcessor class definitions of ModPlug Player
+SpectrumAnalyzerDataProcessor class declarations of Andromeda Signal Lab
 Copyright (C) 2025 Volkan Orhan
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,28 +17,29 @@ You should have received a copy of the GNU General Public License along with thi
 
 using namespace AndromedaSignalLab;
 
-class SpectrumAnalyzerDataProcessor : public QObject
-{
-    Q_OBJECT
+template <class SampleDataType, class SpectrumDataType, class FFTDataType = SampleDataType>
+class SpectrumAnalyzerDataProcessor {
 public:
     explicit SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction);
     ~SpectrumAnalyzerDataProcessor();
     int getBarAmount();
-    void calculateSpectrumData(size_t readCount, float *leftSoundChannelData, float *rightSoundChannelData, double *spectrumData);
+    void calculateSpectrumData(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData);
 private:
     double frequencySpacing = 0;
     int fftPrecision = 0;
     size_t spectrumAnalyzerBarAmount = 0;
     const int bandDesignator = 0;
     SpectrumAnalyzerBands<double> spectrumAnalyzerBands;
-    AndromedaSignalLab::Interfaces::FFT<float> *fft = nullptr;
+    AndromedaSignalLab::Interfaces::FFT<FFTDataType> *fft = nullptr;
     SoundResolution soundResolution;
     std::timed_mutex &soundDataMutex;
-    float *windowMultipliers = nullptr;
+    SampleDataType *windowMultipliers = nullptr;
     WindowFunction windowFunction = WindowFunction::None;
     size_t bufferSize = 0;
     size_t framesPerBuffer = 0;
     void initalize(const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction);
-    void updateFFT(size_t inputDataCount, float *leftSoundChannelData, float *rightSoundChannelData, double *spectrumData);
+    void updateFFT(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData);
     void setWindowFunction(const WindowFunction windowFunction);
 };
+
+#include "SpectrumAnalyzerDataProcessorDefinitions.hpp"

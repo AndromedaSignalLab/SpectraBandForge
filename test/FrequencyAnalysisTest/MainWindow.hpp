@@ -49,7 +49,7 @@ private slots:
 
   private:
     SoundResolution soundResolution;
-    SpectrumAnalyzerDataProcessor *spectrumAnalyzerDataProcessor;
+    SpectrumAnalyzerDataProcessor<float, double> *spectrumAnalyzerDataProcessor;
     std::timed_mutex soundDataMutex;
     Ui::MainWindow *ui;
     void initAnalysisModeComboBox();

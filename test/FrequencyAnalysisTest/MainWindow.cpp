@@ -23,7 +23,7 @@ constexpr int FRAMES_PER_BUFFER = 2048;
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     sineGenerator = new SineGenerator( soundDataMutex, FRAMES_PER_BUFFER);
-    spectrumAnalyzerDataProcessor = new SpectrumAnalyzerDataProcessor(bandDesignator, soundDataMutex,  FRAMES_PER_BUFFER, FRAMES_PER_BUFFER, soundResolution, WindowFunction::None);
+    spectrumAnalyzerDataProcessor = new SpectrumAnalyzerDataProcessor<float, double>(bandDesignator, soundDataMutex,  FRAMES_PER_BUFFER, FRAMES_PER_BUFFER, soundResolution, WindowFunction::None);
     spectrumData = new double[spectrumAnalyzerDataProcessor->getBarAmount()];
     ui->setupUi(this);
     ui->listWidget->setCurrentRow(0);
