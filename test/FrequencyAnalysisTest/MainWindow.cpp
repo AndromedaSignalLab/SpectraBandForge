@@ -23,7 +23,7 @@ constexpr int FRAMES_PER_BUFFER = 2048;
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     sineGenerator = new SineGenerator( soundDataMutex, FRAMES_PER_BUFFER);
-    spectrumAnalyzerDataProcessor = new SpectrumAnalyzerDataProcessor<float, double>(bandDesignator, soundDataMutex,  FRAMES_PER_BUFFER, FRAMES_PER_BUFFER, soundResolution, WindowFunction::None);
+    spectrumAnalyzerDataProcessor = new SpectrumAnalyzerDataProcessor<float, double>(bandDesignator, soundDataMutex,  FRAMES_PER_BUFFER, FRAMES_PER_BUFFER, soundResolution, WindowFunction::HanningWindow);
     spectrumData = new double[spectrumAnalyzerDataProcessor->getBarAmount()];
     ui->setupUi(this);
     ui->listWidget->setCurrentRow(0);
@@ -315,7 +315,8 @@ int MainWindow::read(const void* inputBuffer, void* outputBuffer,
     for(int i = 0; i < bandAmount; i++) {
         double value = spectrumData[i];
         double dB = 20 * log10(value);
-        ui->spectrumAnalysisTableOfSineSweepTest->setItem(i, 2, new QTableWidgetItem(QString::number(dB)));
+        ui->spectrumAnalysisTableOfSineSweepTest->setItem(i, 2, new QTableWidgetItem(QString::number(value)));
+        ui->spectrumAnalysisTableOfSineSweepTest->setItem(i, 3, new QTableWidgetItem(QString::number(dB)));
 
         //ui->spectralData->setItem(i, 0, new QTableWidgetItem(QString::number(dB)));
         //ui->spectralData->setItem(i, 1, new QTableWidgetItem(QString::number(value)));
@@ -347,6 +348,7 @@ void MainWindow::prepareSpectrumTableFoSineSweep(int bandDesignator) {
         isCurrentUnitKHz ? currentUnit = "kHz" : currentUnit = "Hz";
         ui->spectrumAnalysisTableOfSineSweepTest->setItem(currentRowCount - 1, 1, new QTableWidgetItem(QString::number(currentNominalMidBand) + " " + currentUnit));
         ui->spectrumAnalysisTableOfSineSweepTest->setItem(currentRowCount - 1, 2, new QTableWidgetItem(QString::number(0) + " "));
+        ui->spectrumAnalysisTableOfSineSweepTest->setItem(currentRowCount - 1, 3, new QTableWidgetItem(QString::number(0) + " dB"));
     }
 }
 

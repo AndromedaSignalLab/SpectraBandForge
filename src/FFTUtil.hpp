@@ -17,6 +17,7 @@ namespace  AndromedaSignalLab::FFTUtil {
     size_t getOutputDataElementAmount(size_t inputDataElementAmount);
     template <class T> T getFrequencySpacingOld(size_t sampleRate, size_t fftPrecision);
     template <class T> T getFrequencySpacing(size_t sampleRate, size_t inputDataElementAmount);
+    template <class T> void removeMean(T * signalData, const size_t dataCount);
 }
 
 template<class T> T AndromedaSignalLab::FFTUtil::getFrequencySpacingOld(size_t sampleRate, size_t fftPrecision) {
@@ -25,4 +26,16 @@ template<class T> T AndromedaSignalLab::FFTUtil::getFrequencySpacingOld(size_t s
 
 template<class T> T AndromedaSignalLab::FFTUtil::getFrequencySpacing(size_t sampleRate, size_t inputDataElementAmount) {
     return T(sampleRate)/inputDataElementAmount;
+}
+
+template<class T>
+void AndromedaSignalLab::FFTUtil::removeMean(T *signalData, const size_t dataCount) {
+    T mean = 0;
+    for(size_t i = 0; i < dataCount; ++i)
+        mean += signalData[i];
+
+    mean /= dataCount;
+
+    for(size_t i = 0; i < dataCount; ++i)
+        signalData[i] -= mean;
 }

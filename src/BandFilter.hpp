@@ -249,12 +249,28 @@ class SpectrumAnalyzerBands {
         void getAmplitudes(T * amplitudes, size_t beginningIndex);
         void getAmplitudes(T * amplitudes, size_t beginningIndex, size_t endingIndex);
         int getIndexXByFrequencyBin(const T binCenterFrequency, const T binWidth) const;
+        int getIndexXByFrequency(const T frequency) const;
         SpectrumAnalyzerBandDTO<T> & getBandByIndexX(int indexX);
         SpectrumAnalyzerBandDTO<T> & getBandByBandIndex(int bandIndex);
     private:
         void init();
         std::vector<SpectrumAnalyzerBandDTO<T>> spectrumAnalyzerBands;
 };
+
+template<typename T>
+int SpectrumAnalyzerBands<T>::getIndexXByFrequency(const T frequency) const {
+
+    for(const auto& band : spectrumAnalyzerBands) {
+
+        if(frequency >= band.bandInfo.lowerEdgeBandFrequency &&
+           frequency <  band.bandInfo.upperEdgeBandFrequency)
+        {
+            return band.bandInfo.indexX;
+        }
+    }
+
+    return InvalidBandIndex;
+}
 
 template<typename T>
 int SpectrumAnalyzerBands<T>::getIndexXByFrequencyBin(const T binCenterFrequency, const T binWidth) const {

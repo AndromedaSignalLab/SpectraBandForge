@@ -345,8 +345,8 @@
        <widget class="QPushButton" name="startOrStopSineSweepAnalysisButton">
         <property name="geometry">
          <rect>
-          <x>410</x>
-          <y>251</y>
+          <x>420</x>
+          <y>360</y>
           <width>301</width>
           <height>32</height>
          </rect>
@@ -371,10 +371,10 @@
        <widget class="QTableWidget" name="spectrumAnalysisTableOfSineSweepTest">
         <property name="geometry">
          <rect>
-          <x>410</x>
+          <x>420</x>
           <y>20</y>
           <width>301</width>
-          <height>221</height>
+          <height>331</height>
          </rect>
         </property>
         <column>
@@ -390,6 +390,11 @@
         <column>
          <property name="text">
           <string>Amplitude</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Amplitude dB</string>
          </property>
         </column>
        </widget>

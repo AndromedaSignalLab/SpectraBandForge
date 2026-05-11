@@ -40,6 +40,7 @@ private:
     void initalize(const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction);
     void updateFFT(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData);
     void setWindowFunction(const WindowFunction windowFunction);
+
 };
 
 #include "SpectrumAnalyzerDataProcessorDefinitions.hpp"

@@ -13,6 +13,8 @@ You should have received a copy of the GNU General Public License along with thi
 #include <AndromedaDSP.hpp>
 #include <QDebug>
 
+#include "FFTUtil.hpp"
+
 template<class SampleDataType, class SpectrumDataType, class FFTDataType>
 SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction)
 : soundDataMutex(soundDataMutex), bandDesignator(bandDesignator){
@@ -86,12 +88,17 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
         }
     }
     soundDataMutex.unlock();
+    double mean = 0.0;
+
+    FFTUtil::removeMean(fft->fftInput, inputDataCount);
+
     fft->execute();
 
     for(int i=0; i<fftPrecision; i++) {
         magnitude = AndromedaDSP::AndromedaDSP<double>::calculateMagnitude(fft->fftOutput[i].real(), fft->fftOutput[i].imag());
         //qDebug()<<"magnitude: "<<magnitude;
-        int indexX = spectrumAnalyzerBands.getIndexXByFrequencyBin(frequencySpacing+i, frequencySpacing);
+        int indexX = spectrumAnalyzerBands.getIndexXByFrequency(frequencySpacing*i);
+        //int indexX = spectrumAnalyzerBands.getIndexXByFrequencyBin(frequencySpacing*i, frequencySpacing);
         if (indexX == InvalidBandIndex)
             continue;
         SpectrumAnalyzerBandDTO<double> & spectrumAnalyzerBand = spectrumAnalyzerBands[indexX];
