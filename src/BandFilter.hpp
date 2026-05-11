@@ -22,9 +22,10 @@ constexpr int InvalidBandIndex = std::numeric_limits<int>::min();
 #define IMAG 1
 
 template <class T>
-class SpectrumAnalyzerBandDTO {
+class SpectrumAnalyzerBand {
 public:
     OctaveBand<T> bandInfo;
+    std::vector<BandBinContribution<T>> contributingBins;
     inline void addMagnitude(T magnitude);
     inline void resetMagnitude();
     inline T getAverageMagnitude() const;
@@ -35,25 +36,25 @@ private:
 };
 
 template<class T>
-inline T SpectrumAnalyzerBandDTO<T>::getAverageMagnitude() const {
+inline T SpectrumAnalyzerBand<T>::getAverageMagnitude() const {
     if(magnitudeSum == 0)
         return 0;
     return magnitudeSum / T(sampleAmount);
 }
 
 template<class T>
-inline T SpectrumAnalyzerBandDTO<T>::getMagnitudeSum() const {
+inline T SpectrumAnalyzerBand<T>::getMagnitudeSum() const {
     return magnitudeSum;
 }
 
 template<class T>
-inline void SpectrumAnalyzerBandDTO<T>::addMagnitude(T magnitude) {
+inline void SpectrumAnalyzerBand<T>::addMagnitude(T magnitude) {
     this->magnitudeSum += magnitude;
     sampleAmount++;
 }
 
 template<class T>
-inline void SpectrumAnalyzerBandDTO<T>::resetMagnitude() {
+inline void SpectrumAnalyzerBand<T>::resetMagnitude() {
     magnitudeSum = 0;
     sampleAmount = 0;
 }
@@ -67,7 +68,7 @@ public:
     static inline std::vector<OctaveBand<T>> calculateOctaveBandsByXIndices(OctaveBandBase base, size_t b, int xBeginning, int xEnding);
     /*
     template<class FFTDataType> static inline
-    std::vector<SpectrumAnalyzerBandDTO<T>>
+    std::vector<SpectrumAnalyzerBand<T>>
     calculateSpectrumAnalyzerBands(const std::vector<OctaveBand<T>> &octaveBands, FFTDataType *fftData, size_t frameAmount, size_t sampleRate);
     */
 private:
@@ -221,12 +222,12 @@ template<class T>  inline std::vector<OctaveBand<T>> BandFilter<T>::calculateOct
 /*
 template<class T>
 template<class FFTDataType>
-std::vector<SpectrumAnalyzerBandDTO<T>>
+std::vector<SpectrumAnalyzerBand<T>>
 BandFilter<T>::calculateSpectrumAnalyzerBands(const std::vector<OctaveBand<T>> &octaveBands, FFTDataType *fftData,
                                               size_t frameAmount, size_t sampleRate) {
-    std::vector<SpectrumAnalyzerBandDTO<T>> spectrumAnalyzerBands(octaveBands.size());
+    std::vector<SpectrumAnalyzerBand<T>> spectrumAnalyzerBands(octaveBands.size());
     for(OctaveBand<T> &octaveBand : octaveBands) {
-        SpectrumAnalyzerBandDTO<T> spectrumAnalyzerBand;
+        SpectrumAnalyzerBand<T> spectrumAnalyzerBand;
         spectrumAnalyzerBand.bandInfo = octaveBand;
         spectrumAnalyzerBands.push_back(spectrumAnalyzerBand);
     }
@@ -241,20 +242,20 @@ class SpectrumAnalyzerBands {
         void setBandWidthDesignator(size_t bandwidthDesignator);
         void setLowerIndexX(int indexX);
         void setHigherIndexX(int indexX);
-        SpectrumAnalyzerBandDTO<T> & operator [](const int indexX);
+        SpectrumAnalyzerBand<T> & operator [](const int indexX);
         void resetMagnitudes();
-        std::vector<SpectrumAnalyzerBandDTO<T>> getData();
-        void getData(SpectrumAnalyzerBandDTO<T> * bandData);
+        std::vector<SpectrumAnalyzerBand<T>> & getData();
+        void getData(SpectrumAnalyzerBand<T> * bandData);
         void getAmplitudes(T * amplitudes);
         void getAmplitudes(T * amplitudes, size_t beginningIndex);
         void getAmplitudes(T * amplitudes, size_t beginningIndex, size_t endingIndex);
         int getIndexXByFrequencyBin(const T binCenterFrequency, const T binWidth) const;
         int getIndexXByFrequency(const T frequency) const;
-        SpectrumAnalyzerBandDTO<T> & getBandByIndexX(int indexX);
-        SpectrumAnalyzerBandDTO<T> & getBandByBandIndex(int bandIndex);
+        SpectrumAnalyzerBand<T> & getBandByIndexX(int indexX);
+        SpectrumAnalyzerBand<T> & getBandByBandIndex(int bandIndex);
     private:
         void init();
-        std::vector<SpectrumAnalyzerBandDTO<T>> spectrumAnalyzerBands;
+        std::vector<SpectrumAnalyzerBand<T>> spectrumAnalyzerBands;
 };
 
 template<typename T>
@@ -281,14 +282,14 @@ int SpectrumAnalyzerBands<T>::getIndexXByFrequencyBin(const T binCenterFrequency
     int bestIndexX = InvalidBandIndex;
 
     /*
-    for(SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
+    for(SpectrumAnalyzerBand<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
         if(frequency >= spectrumAnalyzerBand.bandInfo.lowerEdgeBandFrequency && frequency < spectrumAnalyzerBand.bandInfo.upperEdgeBandFrequency)
             return spectrumAnalyzerBand.bandInfo.indexX;
     }
     return InvalidBandIndex;
     */
 
-    for (const SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands) {
+    for (const SpectrumAnalyzerBand<T> &spectrumAnalyzerBand:spectrumAnalyzerBands) {
         const T overlapLower = std::max(binLower, spectrumAnalyzerBand.bandInfo.lowerEdgeBandFrequency);
         const T overlapUpper = std::min(binUpper, spectrumAnalyzerBand.bandInfo.upperEdgeBandFrequency);
 
@@ -308,13 +309,13 @@ int SpectrumAnalyzerBands<T>::getIndexXByFrequencyBin(const T binCenterFrequency
 }
 
 template<typename T>
-SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::getBandByBandIndex(const int bandIndex) {
+SpectrumAnalyzerBand<T> &SpectrumAnalyzerBands<T>::getBandByBandIndex(const int bandIndex) {
     return spectrumAnalyzerBands[bandIndex];
 }
 
 template<typename T>
-SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::getBandByIndexX(const int indexX) {
-    for(SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
+SpectrumAnalyzerBand<T> &SpectrumAnalyzerBands<T>::getBandByIndexX(const int indexX) {
+    for(SpectrumAnalyzerBand<T> &spectrumAnalyzerBand:spectrumAnalyzerBands){
         if(spectrumAnalyzerBand.bandInfo.indexX == indexX)
             return spectrumAnalyzerBand;
     }
@@ -322,7 +323,7 @@ SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::getBandByIndexX(const int 
 }
 
 template<typename T>
-SpectrumAnalyzerBandDTO<T> &SpectrumAnalyzerBands<T>::operator[](const int indexX) {
+SpectrumAnalyzerBand<T> &SpectrumAnalyzerBands<T>::operator[](const int indexX) {
     return getBandByIndexX(indexX);
 }
 
@@ -336,7 +337,7 @@ SpectrumAnalyzerBands<T>::SpectrumAnalyzerBands(const std::vector<OctaveBand<T> 
     spectrumAnalyzerBands.clear();
     spectrumAnalyzerBands.reserve(octaveBands.size());
     for(const OctaveBand<T> &octaveBand : octaveBands) {
-        SpectrumAnalyzerBandDTO<T> spectrumAnalyzerBand;
+        SpectrumAnalyzerBand<T> spectrumAnalyzerBand;
         spectrumAnalyzerBand.bandInfo = octaveBand;
         spectrumAnalyzerBands.push_back(spectrumAnalyzerBand);
     }
@@ -349,18 +350,18 @@ SpectrumAnalyzerBands<T>::SpectrumAnalyzerBands() {
 
 template<typename T>
 void SpectrumAnalyzerBands<T>::resetMagnitudes() {
-    for(SpectrumAnalyzerBandDTO<T> &spectrumAnalyzerBandDto : spectrumAnalyzerBands) {
+    for(SpectrumAnalyzerBand<T> &spectrumAnalyzerBandDto : spectrumAnalyzerBands) {
         spectrumAnalyzerBandDto.resetMagnitude();
     }
 }
 
 template<typename T>
-std::vector<SpectrumAnalyzerBandDTO<T>> SpectrumAnalyzerBands<T>::getData() {
+std::vector<SpectrumAnalyzerBand<T>> & SpectrumAnalyzerBands<T>::getData() {
     return spectrumAnalyzerBands;
 }
 
 template<typename T>
-void SpectrumAnalyzerBands<T>::getData(SpectrumAnalyzerBandDTO<T> *bandData) {
+void SpectrumAnalyzerBands<T>::getData(SpectrumAnalyzerBand<T> *bandData) {
     for(int i=0; i<spectrumAnalyzerBands.size(); i++) {
         bandData[i] = spectrumAnalyzerBands[i];
     }

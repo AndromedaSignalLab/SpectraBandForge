@@ -38,6 +38,7 @@ private:
     WindowFunction windowFunction = WindowFunction::None;
     void initalize(const size_t framesPerBuffer, const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction);
     void updateFFT(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData);
+    void calculateBandBinContributions();
     void setWindowFunction(const WindowFunction windowFunction);
 
 };

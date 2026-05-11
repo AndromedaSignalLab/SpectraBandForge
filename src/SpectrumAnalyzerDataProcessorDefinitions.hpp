@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License along with thi
 #include "FFTUtil.hpp"
 
 template<class SampleDataType, class SpectrumDataType, class FFTDataType>
-SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction)
+SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t framesPerBuffer, const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction)
 : soundDataMutex(soundDataMutex), bandDesignator(bandDesignator){
     //fft = new KissFFTImpl<float>();
     fft = new FFTWImpl<FFTDataType>();
-    initalize(bufferSize, framesPerBuffer, soundResolution, windowFunction);
+    initalize(framesPerBuffer, fftSize, soundResolution, windowFunction);
 }
 
 template<class SampleDataType, class SpectrumDataType, class FFTDataType>
@@ -64,6 +64,7 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
     setWindowFunction(windowFunction);
 
     fft->initialize(framesPerBuffer);
+    calculateBandBinContributions();
 }
 
 template<class SampleDataType, class SpectrumDataType, class FFTDataType>
@@ -120,24 +121,48 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
         }
     }*/
 
-    for(int i=0; i<=fftSize/2; i++) {
-        magnitude = AndromedaDSP::AndromedaDSP<double>::calculateMagnitude(fft->fftOutput[i].real(), fft->fftOutput[i].imag());
-        //qDebug()<<"magnitude: "<<magnitude;
-        //int indexX = spectrumAnalyzerBands.getIndexXByFrequency(frequencySpacing*i);
-        int indexX = spectrumAnalyzerBands.getIndexXByFrequencyBin(frequencySpacing*i, frequencySpacing);
-        if (indexX == InvalidBandIndex)
-            continue;
-        SpectrumAnalyzerBandDTO<double> & spectrumAnalyzerBand = spectrumAnalyzerBands[indexX];
-        //if(spectrumAnalyzerBand.bandInfo.nominalMidBandFrequency >= 0 && !std::isnan(magnitude)){
-        spectrumAnalyzerBand.addMagnitude(magnitude);
-        //}
-        //else
-        //    qDebug()<<"nan magnitude";
-        //spectrumData[i] = AndromedaDSP<double>::calculateMagnitudeDb(fftOutput[i][REAL], fftOutput[i][IMAG]);
-        //qDebug()<<"Max Magnitude: "<<maxMagnitude<<" FFT Output["<<i<<"] Real: "<<QString::number(fftOutput[i][REAL], 'g', 6) << "Imaginary: "<<fftOutput[i][IMAG]<<" Magnitude: "<<magnitude<<" DB: "<<magnitude_dB;
+    std::vector<SpectrumAnalyzerBand<SpectrumDataType>> &bands = spectrumAnalyzerBands.getData();
+    int binIndex = 0;
+    for (SpectrumAnalyzerBand<SpectrumDataType> &band : bands) {
+        for (BandBinContribution<SpectrumDataType> bandBinContribution : band.contributingBins) {
+            binIndex = bandBinContribution.binIndex;
+            magnitude = AndromedaDSP::AndromedaDSP<double>::calculateMagnitude(fft->fftOutput[binIndex].real(), fft->fftOutput[binIndex].imag());
+            band.addMagnitude(magnitude * bandBinContribution.overlapRatio);
+        }
     }
     for (int i=0; i<spectrumAnalyzerBarAmount; i++) {
         spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getAverageMagnitude();
+    }
+}
+
+template<class SampleDataType, class SpectrumDataType, class FFTDataType>
+void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::calculateBandBinContributions() {
+    std::vector<SpectrumAnalyzerBand<SpectrumDataType>> &bands = spectrumAnalyzerBands.getData();
+    for (SpectrumAnalyzerBand<SpectrumDataType> &band : bands) {
+        for (size_t binIndex = 0; binIndex <= fftSize / 2; ++binIndex) {
+            double binCenter = frequencySpacing * binIndex;
+
+            double binLow = binCenter - frequencySpacing / 2.0;
+            double binHigh = binCenter + frequencySpacing / 2.0;
+
+            if (binLow < 0.0)
+                binLow = 0.0;
+
+            double ratio = FFTUtil::calculateOverlapRatio(
+                binLow,
+                binHigh,
+                band.bandInfo.lowerEdgeBandFrequency,
+                band.bandInfo.upperEdgeBandFrequency
+            );
+
+            if (ratio > 0.0) {
+                BandBinContribution<double> bandBinContribution;
+                bandBinContribution.binIndex = binIndex;
+                bandBinContribution.overlapRatio = ratio;
+                band.contributingBins.push_back(bandBinContribution);
+            }
+
+        }
     }
 }
 

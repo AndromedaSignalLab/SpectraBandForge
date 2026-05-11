@@ -21,6 +21,12 @@ struct NominalFrequency {
     T exactMidBandFrequency;
 };
 
+template <class T>
+struct BandBinContribution {
+    size_t binIndex;
+    T overlapRatio;
+};
+
 enum class StandardType {
     ANSI,
     IEC
