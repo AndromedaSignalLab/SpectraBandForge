@@ -20,13 +20,14 @@ using namespace AndromedaSignalLab;
 template <class SampleDataType, class SpectrumDataType, class FFTDataType = SampleDataType>
 class SpectrumAnalyzerDataProcessor {
 public:
-    explicit SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction);
+    explicit SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t framesPerBuffer, const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction);
     ~SpectrumAnalyzerDataProcessor();
     int getBarAmount();
     void calculateSpectrumData(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData);
 private:
+    size_t framesPerBuffer = 0;
+    size_t fftSize = 0;
     double frequencySpacing = 0;
-    int fftPrecision = 0;
     size_t spectrumAnalyzerBarAmount = 0;
     const int bandDesignator = 0;
     SpectrumAnalyzerBands<double> spectrumAnalyzerBands;
@@ -35,9 +36,7 @@ private:
     std::timed_mutex &soundDataMutex;
     SampleDataType *windowMultipliers = nullptr;
     WindowFunction windowFunction = WindowFunction::None;
-    size_t bufferSize = 0;
-    size_t framesPerBuffer = 0;
-    void initalize(const size_t bufferSize, const size_t framesPerBuffer, const SoundResolution soundResolution, const WindowFunction windowFunction);
+    void initalize(const size_t framesPerBuffer, const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction);
     void updateFFT(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData);
     void setWindowFunction(const WindowFunction windowFunction);
 

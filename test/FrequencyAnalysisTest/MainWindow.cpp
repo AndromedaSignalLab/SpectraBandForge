@@ -17,13 +17,13 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 #include "./ui_MainWindow.h"
 
-constexpr double SAMPLE_RATE = 44100.0;
-constexpr int FRAMES_PER_BUFFER = 2048;
+constexpr int FRAMES_PER_BUFFER = 1024;
+constexpr int FFT_SIZE = 8192;
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     sineGenerator = new SineGenerator( soundDataMutex, FRAMES_PER_BUFFER);
-    spectrumAnalyzerDataProcessor = new SpectrumAnalyzerDataProcessor<float, double>(bandDesignator, soundDataMutex,  FRAMES_PER_BUFFER, FRAMES_PER_BUFFER, soundResolution, WindowFunction::HanningWindow);
+    spectrumAnalyzerDataProcessor = new SpectrumAnalyzerDataProcessor<float, double>(bandDesignator, soundDataMutex,  FRAMES_PER_BUFFER, FFT_SIZE, soundResolution, WindowFunction::HanningWindow);
     spectrumData = new double[spectrumAnalyzerDataProcessor->getBarAmount()];
     ui->setupUi(this);
     ui->listWidget->setCurrentRow(0);
@@ -286,7 +286,7 @@ void MainWindow::initAudio() {
     // Set up the parameters required to open a (Callback)Stream:
     portaudio::System& portAudioSys = portaudio::System::instance();
     portaudio::DirectionSpecificStreamParameters outParams(portAudioSys.defaultOutputDevice(), 2, portaudio::FLOAT32, false, portAudioSys.defaultOutputDevice().defaultLowOutputLatency(), nullptr);
-    portaudio::StreamParameters params(portaudio::DirectionSpecificStreamParameters::null(), outParams, SAMPLE_RATE, FRAMES_PER_BUFFER, paClipOff);
+    portaudio::StreamParameters params(portaudio::DirectionSpecificStreamParameters::null(), outParams, (int) soundResolution.sampleRate, FRAMES_PER_BUFFER, paClipOff);
 
     // portaudio::MemFunCallbackStream<SineGenerator> stream(params, sineGenerator, &SineGenerator::generate);
     stream.open(params, *this, &MainWindow::read);

@@ -11,6 +11,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 #pragma once
 #include <cstddef>
+#include <algorithm>
 //#include <complex>
 
 namespace  AndromedaSignalLab::FFTUtil {
@@ -18,6 +19,7 @@ namespace  AndromedaSignalLab::FFTUtil {
     template <class T> T getFrequencySpacingOld(size_t sampleRate, size_t fftPrecision);
     template <class T> T getFrequencySpacing(size_t sampleRate, size_t inputDataElementAmount);
     template <class T> void removeMean(T * signalData, const size_t dataCount);
+    template <class T> T calculateOverlapRatio(T binLow, T binHigh, T bandLow, T bandHigh);
 }
 
 template<class T> T AndromedaSignalLab::FFTUtil::getFrequencySpacingOld(size_t sampleRate, size_t fftPrecision) {
@@ -38,4 +40,19 @@ void AndromedaSignalLab::FFTUtil::removeMean(T *signalData, const size_t dataCou
 
     for(size_t i = 0; i < dataCount; ++i)
         signalData[i] -= mean;
+}
+
+template<class T> T AndromedaSignalLab::FFTUtil::calculateOverlapRatio( T binLow, T binHigh, T bandLow, T bandHigh) {
+    T overlapLow = std::max(binLow, bandLow);
+    T overlapHigh = std::min(binHigh, bandHigh);
+
+    T overlapWidth = overlapHigh - overlapLow;
+    if (overlapWidth <= 0.0)
+        return 0.0;
+
+    T binWidth = binHigh - binLow;
+    if (binWidth <= 0.0)
+        return 0.0;
+
+    return overlapWidth / binWidth;
 }
