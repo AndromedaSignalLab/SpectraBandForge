@@ -27,28 +27,34 @@ public:
     OctaveBand<T> bandInfo;
     inline void addMagnitude(T magnitude);
     inline void resetMagnitude();
-    inline T getMagnitude() const;
+    inline T getAverageMagnitude() const;
+    inline T getMagnitudeSum() const;
 private:
-    T magnitude = 0;
+    T magnitudeSum = 0;
     size_t sampleAmount = 0;
 };
 
 template<class T>
-inline T SpectrumAnalyzerBandDTO<T>::getMagnitude() const{
-    if(magnitude == 0)
+inline T SpectrumAnalyzerBandDTO<T>::getAverageMagnitude() const {
+    if(magnitudeSum == 0)
         return 0;
-    return magnitude/T(sampleAmount);
+    return magnitudeSum / T(sampleAmount);
+}
+
+template<class T>
+inline T SpectrumAnalyzerBandDTO<T>::getMagnitudeSum() const {
+    return magnitudeSum;
 }
 
 template<class T>
 inline void SpectrumAnalyzerBandDTO<T>::addMagnitude(T magnitude) {
-    this->magnitude += magnitude;
+    this->magnitudeSum += magnitude;
     sampleAmount++;
 }
 
 template<class T>
 inline void SpectrumAnalyzerBandDTO<T>::resetMagnitude() {
-    magnitude = 0;
+    magnitudeSum = 0;
     sampleAmount = 0;
 }
 
@@ -347,14 +353,14 @@ void SpectrumAnalyzerBands<T>::getData(SpectrumAnalyzerBandDTO<T> *bandData) {
 template<typename T>
 void SpectrumAnalyzerBands<T>::getAmplitudes(T *amplitudes) {
     for(int i=0; i<spectrumAnalyzerBands.size(); i++) {
-        amplitudes[i] = spectrumAnalyzerBands[i].getMagnitude();
+        amplitudes[i] = spectrumAnalyzerBands[i].getAverageMagnitude();
     }
 }
 
 template<typename T>
 void SpectrumAnalyzerBands<T>::getAmplitudes(T *amplitudes, size_t beginningIndex) {
     for(int i=beginningIndex; i<spectrumAnalyzerBands.size(); i++) {
-        amplitudes[i-beginningIndex] = spectrumAnalyzerBands[i].getMagnitude();
+        amplitudes[i-beginningIndex] = spectrumAnalyzerBands[i].getAverageMagnitude();
     }
 }
 
@@ -362,6 +368,6 @@ template<typename T>
 void
 SpectrumAnalyzerBands<T>::getAmplitudes(T *amplitudes, size_t beginningIndex, size_t endingIndex) {
     for(int i=beginningIndex; i<endingIndex; i++) {
-        amplitudes[i-beginningIndex] = spectrumAnalyzerBands[i].getMagnitude();
+        amplitudes[i-beginningIndex] = spectrumAnalyzerBands[i].getAverageMagnitude();
     }
 }

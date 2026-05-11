@@ -42,7 +42,7 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
     SpectrumDataType *spectrumData) {
     //if(playerState == PlayingState::Playing) {
     updateFFT(inputDataCount, leftSoundChannelData, rightSoundChannelData, spectrumData);
-    this->spectrumAnalyzerBands.getAmplitudes(spectrumData, 0);
+    this->spectrumAnalyzerBands.getAmplitudes(spectrumData);
     //}
     //else
     //    std::fill(spectrumData, spectrumData+20, 0);
@@ -104,7 +104,7 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
         //qDebug()<<"Max Magnitude: "<<maxMagnitude<<" FFT Output["<<i<<"] Real: "<<QString::number(fftOutput[i][REAL], 'g', 6) << "Imaginary: "<<fftOutput[i][IMAG]<<" Magnitude: "<<magnitude<<" DB: "<<magnitude_dB;
     }
     for (int i=0; i<spectrumAnalyzerBarAmount; i++) {
-        spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getMagnitude();
+        spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getAverageMagnitude();
     }
 }
 

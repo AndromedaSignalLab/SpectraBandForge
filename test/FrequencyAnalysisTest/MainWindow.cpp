@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget* parent)
     soundResolution.channelMode = ChannelMode::Stereo;
     soundResolution.sampleDataFormat = SampleDataFormat::Float32;
     soundResolution.sampleRate = SamplingFrequency::Hz44100;;
+    prepareSpectrumTableFoSineSweep(bandDesignator);
 }
 
 MainWindow::~MainWindow() {
@@ -310,16 +311,43 @@ int MainWindow::read(const void* inputBuffer, void* outputBuffer,
                      PaStreamCallbackFlags statusFlags) {
     float** out = static_cast<float**>(outputBuffer);
     int returnValue = sineGenerator->generateStereo(out, framesPerBuffer, false);
-    if(globalVolumeLevel != 1.00) {
-        soundDataMutex.lock();
-        for(int i = 0; i < framesPerBuffer; i++) {
-            out[0][i] *= globalVolumeLevel;
-            out[1][i] *= globalVolumeLevel;
-        }
-        soundDataMutex.unlock();
-        spectrumAnalyzerDataProcessor->calculateSpectrumData(framesPerBuffer, out[0], out[1], spectrumData);
+    spectrumAnalyzerDataProcessor->calculateSpectrumData(framesPerBuffer, out[0], out[1], spectrumData);
+    for(int i = 0; i < bandAmount; i++) {
+        double value = spectrumData[i];
+        double dB = 20 * log10(value);
+        ui->spectrumAnalysisTableOfSineSweepTest->setItem(i, 2, new QTableWidgetItem(QString::number(dB)));
+
+        //ui->spectralData->setItem(i, 0, new QTableWidgetItem(QString::number(dB)));
+        //ui->spectralData->setItem(i, 1, new QTableWidgetItem(QString::number(value)));
     }
+    soundDataMutex.lock();
+    for(int i = 0; i < framesPerBuffer; i++) {
+        out[0][i] *= globalVolumeLevel;
+        out[1][i] *= globalVolumeLevel;
+    }
+    soundDataMutex.unlock();
     return returnValue;
+}
+
+void MainWindow::prepareSpectrumTableFoSineSweep(int bandDesignator) {
+    ui->spectrumAnalysisTableOfSineSweepTest->model()->removeRows(0, ui->spectrumAnalysisTableOfSineSweepTest->rowCount());
+    bandAmount = bandDesignator * 10;
+    ui->bandDesignatorLabel->setText(QString::number(bandDesignator));
+    ui->bandAmountLabel->setText(QString::number(bandAmount));
+    ui->spectrumAnalysisTableOfSineSweepTest->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    std::vector<OctaveBand<double>> octaveBands = BandFilter<double>::calculateOctaveBands(bandDesignator);
+    int currentRowCount = 0;
+    double currentNominalMidBand;
+    bool isCurrentUnitKHz;
+    QString currentUnit;
+    for(OctaveBand<double>& octaveBand : octaveBands) {
+        ui->spectrumAnalysisTableOfSineSweepTest->insertRow(currentRowCount++);
+        ui->spectrumAnalysisTableOfSineSweepTest->setItem(currentRowCount - 1, 0, new QTableWidgetItem(QString::number(octaveBand.indexX)));
+        currentNominalMidBand = beautifulFrequency(octaveBand.nominalMidBandFrequency, isCurrentUnitKHz);
+        isCurrentUnitKHz ? currentUnit = "kHz" : currentUnit = "Hz";
+        ui->spectrumAnalysisTableOfSineSweepTest->setItem(currentRowCount - 1, 1, new QTableWidgetItem(QString::number(currentNominalMidBand) + " " + currentUnit));
+        ui->spectrumAnalysisTableOfSineSweepTest->setItem(currentRowCount - 1, 2, new QTableWidgetItem(QString::number(0) + " "));
+    }
 }
 
 void MainWindow::on_soundOutputButton_clicked()
@@ -331,12 +359,6 @@ void MainWindow::on_soundOutputButton_clicked()
 void MainWindow::on_volumeSlider_valueChanged(int value)
 {
     globalVolumeLevel = double(value)/100;
-    if(value != 0 && sineSweepAnalysisStarted && !stream.isActive()){
-        stream.start();
-    }
-    else if(value == 0 && stream.isActive()){
-        stream.stop();
-    }
 
     if(value == 0)
         ui->soundOutputButton->setIcon(QIcon::fromTheme(QIcon::ThemeIcon::AudioVolumeMuted));

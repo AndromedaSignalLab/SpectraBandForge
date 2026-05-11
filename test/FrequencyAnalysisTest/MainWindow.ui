@@ -159,7 +159,7 @@
        <number>1</number>
       </property>
       <widget class="QWidget" name="page_1">
-       <widget class="QListWidget" name="waveListWidget">
+       <widget class="QListWidget" name="sineWaveTable">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -289,7 +289,7 @@
          <string>Sine Wave Table</string>
         </property>
        </widget>
-       <widget class="QTableWidget" name="tableWidget">
+       <widget class="QTableWidget" name="spectrumAnalysisTableOfMultipleFrequencyTest">
         <property name="geometry">
          <rect>
           <x>420</x>
@@ -298,6 +298,11 @@
           <height>221</height>
          </rect>
         </property>
+        <column>
+         <property name="text">
+          <string>IndexX</string>
+         </property>
+        </column>
         <column>
          <property name="text">
           <string>Frequency</string>
@@ -363,7 +368,7 @@
          <string>Spectrum Analysis Table</string>
         </property>
        </widget>
-       <widget class="QTableWidget" name="tableWidget_2">
+       <widget class="QTableWidget" name="spectrumAnalysisTableOfSineSweepTest">
         <property name="geometry">
          <rect>
           <x>410</x>
@@ -372,6 +377,11 @@
           <height>221</height>
          </rect>
         </property>
+        <column>
+         <property name="text">
+          <string>IndexX</string>
+         </property>
+        </column>
         <column>
          <property name="text">
           <string>Frequency</string>

@@ -78,4 +78,5 @@ private slots:
     void analyzeSineSweep();
     double globalVolumeLevel = 0.75;
     double * spectrumData = nullptr;
+    void prepareSpectrumTableFoSineSweep(int bandDesignator);
 };
