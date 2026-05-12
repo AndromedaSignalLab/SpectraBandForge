@@ -78,12 +78,14 @@ template<class T> inline T FrequencyCalculator::calculateNominalFrequency(size_t
         return AndromedaSignalLab::MathUtil::roundBy(fm, 2);
 }
 
-template <class T> inline T FrequencyCalculator::calculateLowerEdgeBandFrequency(size_t b, T G, T fm){
-    return pow(G, T(-1) / (T(2) * T(2*b))) * fm;
+template <class T>
+inline T FrequencyCalculator::calculateLowerEdgeBandFrequency(size_t b, T G, T fm){
+    return pow(G, T(-1) / (T(2) * T(b))) * fm;
 }
 
-template <class T> inline T FrequencyCalculator::calculateUpperEdgeBandFrequency(size_t b, T G, T fm){
-    return pow(G, T(1) / (T(2) * T(2*b))) * fm;
+template <class T>
+inline T FrequencyCalculator::calculateUpperEdgeBandFrequency(size_t b, T G, T fm){
+    return pow(G, T(1) / (T(2) * T(b))) * fm;
 }
 
 template<class T> inline T FrequencyCalculator::getG(OctaveBandBase base) {
