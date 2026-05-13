@@ -89,7 +89,7 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
     soundDataMutex.unlock();
     double mean = 0.0;
 
-    FFTUtil::removeMean(fft->fftInput, inputDataCount);
+    //FFTUtil::removeMean(fft->fftInput, inputDataCount);
 
     fft->execute();
 
