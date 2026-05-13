@@ -26,36 +26,36 @@ class SpectrumAnalyzerBand {
 public:
     OctaveBand<T> bandInfo;
     std::vector<BandBinContribution<T>> contributingBins;
-    inline void addMagnitude(T magnitude);
-    inline void resetMagnitude();
-    inline T getAverageMagnitude() const;
-    inline T getMagnitudeSum() const;
+    inline void addPower(T power);
+    inline void resetPower();
+    inline T getAveragePower() const;
+    inline T getPower() const;
 private:
-    T magnitudeSum = 0;
+    T power = 0;
     size_t sampleAmount = 0;
 };
 
 template<class T>
-inline T SpectrumAnalyzerBand<T>::getAverageMagnitude() const {
-    if(magnitudeSum == 0)
+inline T SpectrumAnalyzerBand<T>::getAveragePower() const {
+    if(power == 0)
         return 0;
-    return magnitudeSum / T(sampleAmount);
+    return power / T(sampleAmount);
 }
 
 template<class T>
-inline T SpectrumAnalyzerBand<T>::getMagnitudeSum() const {
-    return magnitudeSum;
+inline T SpectrumAnalyzerBand<T>::getPower() const {
+    return power;
 }
 
 template<class T>
-inline void SpectrumAnalyzerBand<T>::addMagnitude(T magnitude) {
-    this->magnitudeSum += magnitude;
+inline void SpectrumAnalyzerBand<T>::addPower(T power) {
+    this->power += power;
     sampleAmount++;
 }
 
 template<class T>
-inline void SpectrumAnalyzerBand<T>::resetMagnitude() {
-    magnitudeSum = 0;
+inline void SpectrumAnalyzerBand<T>::resetPower() {
+    power = 0;
     sampleAmount = 0;
 }
 
@@ -243,12 +243,12 @@ class SpectrumAnalyzerBands {
         void setLowerIndexX(int indexX);
         void setHigherIndexX(int indexX);
         //SpectrumAnalyzerBand<T> & operator [](const int indexX);
-        void resetMagnitudes();
+        void resetPowers();
         std::vector<SpectrumAnalyzerBand<T>> & getData();
         void getData(SpectrumAnalyzerBand<T> * bandData);
-        void getAmplitudes(T * amplitudes);
-        void getAmplitudes(T * amplitudes, size_t beginningIndex);
-        void getAmplitudes(T * amplitudes, size_t beginningIndex, size_t endingIndex);
+        void getPowers(T * powers);
+        void getPowers(T * powers, size_t beginningIndex);
+        void getPowers(T * powers, size_t beginningIndex, size_t endingIndex);
         int getIndexXByFrequencyBin(const T binCenterFrequency, const T binWidth) const;
         int getIndexXByFrequency(const T frequency) const;
         SpectrumAnalyzerBand<T> & getBandByIndexX(int indexX);
@@ -350,9 +350,9 @@ SpectrumAnalyzerBands<T>::SpectrumAnalyzerBands() {
 }
 
 template<typename T>
-void SpectrumAnalyzerBands<T>::resetMagnitudes() {
+void SpectrumAnalyzerBands<T>::resetPowers() {
     for(SpectrumAnalyzerBand<T> &spectrumAnalyzerBandDto : spectrumAnalyzerBands) {
-        spectrumAnalyzerBandDto.resetMagnitude();
+        spectrumAnalyzerBandDto.resetPower();
     }
 }
 
@@ -369,23 +369,23 @@ void SpectrumAnalyzerBands<T>::getData(SpectrumAnalyzerBand<T> *bandData) {
 }
 
 template<typename T>
-void SpectrumAnalyzerBands<T>::getAmplitudes(T *amplitudes) {
+void SpectrumAnalyzerBands<T>::getPowers(T *powers) {
     for(int i=0; i<spectrumAnalyzerBands.size(); i++) {
-        amplitudes[i] = spectrumAnalyzerBands[i].getAverageMagnitude();
+        powers[i] = spectrumAnalyzerBands[i].getPower();
     }
 }
 
 template<typename T>
-void SpectrumAnalyzerBands<T>::getAmplitudes(T *amplitudes, size_t beginningIndex) {
+void SpectrumAnalyzerBands<T>::getPowers(T *powers, size_t beginningIndex) {
     for(int i=beginningIndex; i<spectrumAnalyzerBands.size(); i++) {
-        amplitudes[i-beginningIndex] = spectrumAnalyzerBands[i].getAverageMagnitude();
+        powers[i-beginningIndex] = spectrumAnalyzerBands[i].getPower();
     }
 }
 
 template<typename T>
 void
-SpectrumAnalyzerBands<T>::getAmplitudes(T *amplitudes, size_t beginningIndex, size_t endingIndex) {
+SpectrumAnalyzerBands<T>::getPowers(T *powers, size_t beginningIndex, size_t endingIndex) {
     for(int i=beginningIndex; i<endingIndex; i++) {
-        amplitudes[i-beginningIndex] = spectrumAnalyzerBands[i].getAverageMagnitude();
+        powers[i-beginningIndex] = spectrumAnalyzerBands[i].getPower();
     }
 }

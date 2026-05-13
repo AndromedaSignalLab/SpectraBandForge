@@ -44,7 +44,7 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
     SpectrumDataType *spectrumData) {
     //if(playerState == PlayingState::Playing) {
     updateFFT(inputDataCount, leftSoundChannelData, rightSoundChannelData, spectrumData);
-    this->spectrumAnalyzerBands.getAmplitudes(spectrumData);
+    this->spectrumAnalyzerBands.getPowers(spectrumData);
     //}
     //else
     //    std::fill(spectrumData, spectrumData+20, 0);
@@ -70,9 +70,9 @@ template<class SampleDataType, class SpectrumDataType, class FFTDataType>
 void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::updateFFT(size_t inputDataCount, SampleDataType *leftSoundChannelData, SampleDataType *rightSoundChannelData, SpectrumDataType *spectrumData) {
     if(spectrumData == nullptr)
         return;
-    double magnitude;
+    double power;
     //double magnitude_dB;
-    spectrumAnalyzerBands.resetMagnitudes();
+    spectrumAnalyzerBands.resetPowers();
     soundDataMutex.lock();
     if(windowFunction == WindowFunction::None) {
         for (unsigned int i = 0; i < inputDataCount; i++) {
@@ -123,16 +123,15 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
     std::vector<SpectrumAnalyzerBand<SpectrumDataType>> &bands = spectrumAnalyzerBands.getData();
     int binIndex = 0;
     for (SpectrumAnalyzerBand<SpectrumDataType> &band : bands) {
-        band.resetMagnitude();
+        // No need to reset power of the band, since all the band powers are reset at the beginning of this method.
         for (BandBinContribution<SpectrumDataType> bandBinContribution : band.contributingBins) {
             binIndex = bandBinContribution.binIndex;
-            magnitude = AndromedaDSP::AndromedaDSP<double>::calculateMagnitude(fft->fftOutput[binIndex].real(), fft->fftOutput[binIndex].imag());
-            FFTDataType power = magnitude * magnitude;
-            band.addMagnitude(power * bandBinContribution.overlapRatio);
+            FFTDataType power = AndromedaDSP::AndromedaDSP<FFTDataType>::calculatePower(fft->fftOutput[binIndex].real(), fft->fftOutput[binIndex].imag());
+            band.addPower(power * bandBinContribution.overlapRatio);
         }
     }
     for (int i=0; i<spectrumAnalyzerBarAmount; i++) {
-        spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getMagnitudeSum();
+        spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getPower();
     }
 }
 
