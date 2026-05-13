@@ -242,7 +242,7 @@ class SpectrumAnalyzerBands {
         void setBandWidthDesignator(size_t bandwidthDesignator);
         void setLowerIndexX(int indexX);
         void setHigherIndexX(int indexX);
-        SpectrumAnalyzerBand<T> & operator [](const int indexX);
+        //SpectrumAnalyzerBand<T> & operator [](const int indexX);
         void resetMagnitudes();
         std::vector<SpectrumAnalyzerBand<T>> & getData();
         void getData(SpectrumAnalyzerBand<T> * bandData);
@@ -321,11 +321,12 @@ SpectrumAnalyzerBand<T> &SpectrumAnalyzerBands<T>::getBandByIndexX(const int ind
     }
     throw std::exception();
 }
-
+/*
 template<typename T>
 SpectrumAnalyzerBand<T> &SpectrumAnalyzerBands<T>::operator[](const int indexX) {
     return getBandByIndexX(indexX);
 }
+*/
 
 template<typename T>
 void SpectrumAnalyzerBands<T>::init() {

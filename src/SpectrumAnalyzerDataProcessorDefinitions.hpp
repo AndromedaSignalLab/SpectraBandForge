@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License along with thi
 #include "FFTUtil.hpp"
 
 template<class SampleDataType, class SpectrumDataType, class FFTDataType>
-SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t framesPerBuffer, const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction)
+SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::SpectrumAnalyzerDataProcessor(const int bandDesignator, std::timed_mutex &soundDataMutex, const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction)
 : soundDataMutex(soundDataMutex), bandDesignator(bandDesignator){
     //fft = new KissFFTImpl<float>();
     fft = new FFTWImpl<FFTDataType>();
-    initalize(framesPerBuffer, fftSize, soundResolution, windowFunction);
+    initalize(fftSize, soundResolution, windowFunction);
 }
 
 template<class SampleDataType, class SpectrumDataType, class FFTDataType>
@@ -51,8 +51,7 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
 }
 
 template<class SampleDataType, class SpectrumDataType, class FFTDataType>
-void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::initalize(const size_t framesPerBuffer, const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction) {
-    this->framesPerBuffer = framesPerBuffer;
+void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType>::initalize(const size_t fftSize, const SoundResolution soundResolution, const WindowFunction windowFunction) {
     this->fftSize = fftSize;
     this->frequencySpacing = double(soundResolution.sampleRate)/fftSize;
     std::vector<OctaveBand<SpectrumDataType>> bands = BandFilter<SpectrumDataType>::calculateOctaveBands(bandDesignator);
@@ -63,7 +62,7 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
 
     setWindowFunction(windowFunction);
 
-    fft->initialize(framesPerBuffer);
+    fft->initialize(fftSize);
     calculateBandBinContributions();
 }
 
@@ -124,14 +123,16 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
     std::vector<SpectrumAnalyzerBand<SpectrumDataType>> &bands = spectrumAnalyzerBands.getData();
     int binIndex = 0;
     for (SpectrumAnalyzerBand<SpectrumDataType> &band : bands) {
+        band.resetMagnitude();
         for (BandBinContribution<SpectrumDataType> bandBinContribution : band.contributingBins) {
             binIndex = bandBinContribution.binIndex;
             magnitude = AndromedaDSP::AndromedaDSP<double>::calculateMagnitude(fft->fftOutput[binIndex].real(), fft->fftOutput[binIndex].imag());
-            band.addMagnitude(magnitude * bandBinContribution.overlapRatio);
+            FFTDataType power = magnitude * magnitude;
+            band.addMagnitude(power * bandBinContribution.overlapRatio);
         }
     }
     for (int i=0; i<spectrumAnalyzerBarAmount; i++) {
-        spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getAverageMagnitude();
+        spectrumData[i] = spectrumAnalyzerBands.getBandByBandIndex(i).getMagnitudeSum();
     }
 }
 
@@ -178,13 +179,13 @@ void SpectrumAnalyzerDataProcessor<SampleDataType, SpectrumDataType, FFTDataType
             windowMultipliers = nullptr;
             break;
         case WindowFunction::HanningWindow:
-            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hanningMultipliers(this->framesPerBuffer);
+            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hanningMultipliers(this->fftSize);
             break;
         case WindowFunction::HammingWindow:
-            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hammingMultipliers(this->framesPerBuffer);
+            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::hammingMultipliers(this->fftSize);
             break;
         case WindowFunction::BlackmanWindow:
-            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::blackmanMultipliers(this->framesPerBuffer);
+            windowMultipliers = AndromedaDSP::AndromedaDSP<float>::blackmanMultipliers(this->fftSize);
             break;
     }
     soundDataMutex.unlock();
